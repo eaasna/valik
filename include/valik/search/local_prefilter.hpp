@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <bitset>
+
+#include <boost/dynamic_bitset.hpp>
 
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
@@ -104,9 +107,22 @@ pattern_bounds make_pattern_bounds(size_t const & begin,
 //
 //-----------------------------
 template <typename binning_bitvector_t>
-std::set<size_t> find_pattern_bins(pattern_bounds const & pattern, size_t const & bin_count, binning_bitvector_t const & counting_table)
+boost::dynamic_bitset<> find_pattern_bins(pattern_bounds const & pattern, size_t const & bin_count, binning_bitvector_t const & counting_table)
 {
-    std::set<size_t> pattern_hits{};
+
+    // bool vector:
+    //  CON: no bitwise operations
+    //  PRO: dynamic allocation
+    // std::vector<bool> pattern_hits(bin_count, false);
+
+    // std bitset:
+    //  CON: size has to be known at compile time
+    //  PRO: native bitwise operations
+
+    // boost bitset:
+    //  CON: need to add dependency
+    //  PRO: native bitwise operations; dynamic size
+    boost::dynamic_bitset<> pattern_hits(bin_count);
 
     // counting vector for the current pattern
     seqan3::counting_vector<uint8_t> total_counts(bin_count, 0);
@@ -119,7 +135,7 @@ std::set<size_t> find_pattern_bins(pattern_bounds const & pattern, size_t const 
         if (count >= pattern.threshold)
         {
             // the result_set is a union of results from all patterns of a read
-            pattern_hits.insert(current_bin);
+            pattern_hits[current_bin] = 1;
         }
     }
 
@@ -201,12 +217,12 @@ struct local_prefilter_fn
 
             minimiser.clear();
 
-            std::set<size_t> sequence_hits{};
+            boost::dynamic_bitset<> const pattern_hits(bin_count);
             pattern_begin_positions(seq.size(), arguments.pattern_size, arguments.overlap, [&](size_t const begin)
             {
                 pattern_bounds const pattern = make_pattern_bounds(begin, arguments, window_span_begin, threshold_data);
-                std::set<size_t> const pattern_hits = find_pattern_bins(pattern, bin_count, counting_table);
-                sequence_hits.insert(pattern_hits.begin(), pattern_hits.end());
+                boost::dynamic_bitset<> const pattern_hits = find_pattern_bins(pattern, bin_count, counting_table);
+                sequence_hits = (sequence_hits & pattern_hits);
             });
 
             thread_result.emplace_back(id, std::move(sequence_hits));

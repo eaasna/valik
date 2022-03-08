@@ -35,6 +35,13 @@ list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
 include (seqan3_require_ccache)
 seqan3_require_ccache ()
 
+# Dependency: Boost
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.36.0 COMPONENTS filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
+
 # Add the application.
 add_subdirectory (src)
 message (STATUS "${FontBold}You can run `make` to build the application.${FontReset}")
