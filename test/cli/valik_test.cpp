@@ -108,8 +108,8 @@ TEST_P(valik_search, search)
                                                          "--error ", std::to_string(number_of_errors),
                                                          "--index ", ibf_path(number_of_bins, window_size),
                                                          "--query ", data("query.fq"),
-							 "--tau 0.75",
-							 "--p_max 0.75");
+							 "--tau 1.0",
+							 "--p_max 1.0");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});

@@ -2,8 +2,8 @@
 
 cd search
 
-tau=0.75
-p_max=0.75
+tau=1.0
+p_max=1.0
 
 for w in 19 23
 do
