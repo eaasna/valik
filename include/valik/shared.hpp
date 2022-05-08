@@ -8,6 +8,8 @@
 
 #include <raptor/threshold/threshold_parameters.hpp>
 
+#include <valik/search/sync_out.hpp>
+
 namespace valik
 {
 
@@ -78,6 +80,7 @@ struct search_arguments
     std::filesystem::path query_file{};
     std::filesystem::path index_file{};
     std::filesystem::path out_file{"search.out"};
+    std::filesystem::path bin_query_file{};
 
     // Related to thresholding
     double tau{0.9999};

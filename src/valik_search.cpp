@@ -36,6 +36,24 @@ void run_program(search_arguments const &arguments, search_time_statistics & tim
 
     sync_out synced_out{arguments.out_file};
 
+    // ==========================================
+    // Create sync_out for each bin-query path.
+    // ==========================================
+    std::vector<sync_out> bin_query_writers{};
+    const std::filesystem::path bin_query_file = arguments.bin_query_file;
+    std::ifstream istrm{bin_query_file};
+    std::string line;
+
+    while (std::getline(istrm, line))
+    {
+        if (!line.empty())
+        {
+            std::filesystem::path bin_query_path = line;
+            sync_out bin_query_out{bin_query_path};
+            bin_query_writers.emplace_back(std::move(bin_query_out));
+        }
+    } // sync_out can not be const; arguments are passed as const
+
     size_t record_id = 0u;
     for (auto &&chunked_records : fin | seqan3::views::chunk((1ULL << 20) * 10))
     {
@@ -54,7 +72,7 @@ void run_program(search_arguments const &arguments, search_time_statistics & tim
         start = std::chrono::high_resolution_clock::now();
 
         //TODO: pass index and overlap instead of ibf and all parameters
-        write_output_file_parallel(index.ibf(), arguments, query_records, thresholder, synced_out);
+        write_output_file_parallel(index.ibf(), arguments, query_records, thresholder, synced_out, bin_query_writers, time_statistics);
         end = std::chrono::high_resolution_clock::now();
         time_statistics.compute_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
     }

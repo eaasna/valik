@@ -30,6 +30,12 @@ void init_search_parser(seqan3::argument_parser & parser, search_arguments & arg
                       "Please provide a valid path to the output.",
                       seqan3::option_spec::required,
                       seqan3::output_file_validator{});
+    parser.add_option(arguments.bin_query_file,
+                      '\0',
+                      "bin-query",
+                      "Please provide a valid path for the bin-query metadata file.",
+                      seqan3::option_spec::required,
+                      seqan3::input_file_validator{});
     parser.add_option(arguments.errors,
                       '\0',
                       "error",

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
@@ -134,7 +135,7 @@ struct local_prefilter_fn
     //
     //-----------------------------
     template <seqan3::data_layout ibf_data_layout>
-    std::vector<query_result>
+    std::pair<std::vector<query_result>, std::map<size_t, std::vector<std::pair<std::string, std::vector<seqan3::dna4>>>>>
     operator()(
         std::span<query_record const> const & records,
         seqan3::interleaved_bloom_filter<ibf_data_layout> const & ibf,
@@ -146,7 +147,9 @@ struct local_prefilter_fn
         auto agent = ibf.membership_agent();
         size_t const bin_count = ibf.bin_count();
 
-        std::vector<query_result> thread_result{}; // set of query results processed by one thread
+        std::vector<query_result> thread_query_result{}; // set of query results processed by one thread
+        using query_list = std::vector<std::pair<std::string, std::vector<seqan3::dna4>>>;
+        std::map<size_t, query_list> thread_bin_result{};
 
         // vector holding all the minimisers and their starting position for the read
         std::vector<std::tuple<uint64_t, size_t>> minimiser;
@@ -206,10 +209,15 @@ struct local_prefilter_fn
                 sequence_hits.insert(pattern_hits.begin(), pattern_hits.end());
             });
 
-            thread_result.emplace_back(id, std::move(sequence_hits));
+            for (size_t bin : sequence_hits)
+            {
+                thread_bin_result[bin].emplace_back(id, seq);
+            }
+            thread_query_result.emplace_back(id, std::move(sequence_hits));
         }
 
-        return thread_result;
+
+        return std::make_pair(std::move(thread_query_result), std::move(thread_bin_result));
     }
 };
 
