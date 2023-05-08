@@ -119,7 +119,8 @@ bool run_program(search_arguments const &arguments, search_time_statistics & tim
             for (auto next = queue.dequeue(); next; next = queue.dequeue())
             {
                 auto & [bin_id, records] = *next;
-
+		if (records.empty())
+			continue;
                 std::unique_lock g(mutex);
                 std::filesystem::path path = tmp_path / std::string("query_" + std::to_string(bin_id) + "_" + std::to_string(bin_count[bin_id]++) + ".fasta");
 
