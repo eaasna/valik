@@ -89,12 +89,12 @@ void valik_split(split_arguments & arguments)
         }
     }
 
-    if (arguments.write_out)
+    if (arguments.write_out && !arguments.metagenome)
     {
         if (arguments.split_index)
-            write_reference_segments(meta, arguments.seq_file);
+            write_reference_segments(meta, arguments.db_file);
         else
-            write_query_segments(meta, arguments.seq_file);
+            write_query_segments(meta, arguments.db_file);
     }
 }
 

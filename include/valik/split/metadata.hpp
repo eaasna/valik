@@ -58,11 +58,11 @@ struct metadata
         size_t ind;
         uint64_t len;
 
-        constexpr sequence_stats() noexcept = default;
-        constexpr sequence_stats(sequence_stats const &) noexcept = default;
-        constexpr sequence_stats(sequence_stats &&) noexcept = default;
-        constexpr sequence_stats & operator=(sequence_stats const &) noexcept = default;
-        constexpr sequence_stats & operator=(sequence_stats &&) noexcept = default;
+        sequence_stats() noexcept = default;
+        sequence_stats(sequence_stats const &) noexcept = default;
+        sequence_stats(sequence_stats &&) noexcept = default;
+        sequence_stats & operator=(sequence_stats const &) noexcept = default;
+        sequence_stats & operator=(sequence_stats &&) noexcept = default;
         ~sequence_stats() noexcept = default;
         
         sequence_stats(std::string const fasta_id, size_t const fasta_ind, uint64_t const seq_length)
@@ -92,7 +92,7 @@ struct metadata
      * All indices and positions are 0-based.
      *
      *  \param id       Index of the segment in the vector of segments.
-     *  \param seq_ind  Index of the underlying sequence in the input FASTA file. Corresponds to sequence_stats::id.
+     *  \param seq_ind  Index of the underlying sequence in the input FASTA file. Corresponds to sequence_stats::ind.
      *  \param start    Segment start position in sequence.
      *  \param len      Segment length.
      */
@@ -103,11 +103,11 @@ struct metadata
         uint64_t start;
         uint64_t len;
 
-        constexpr segment_stats() noexcept = default;
-        constexpr segment_stats(segment_stats const &) noexcept = default;
-        constexpr segment_stats(segment_stats &&) noexcept = default;
-        constexpr segment_stats & operator=(segment_stats const &) noexcept = default;
-        constexpr segment_stats & operator=(segment_stats &&) noexcept = default;
+        segment_stats() noexcept = default;
+        segment_stats(segment_stats const &) noexcept = default;
+        segment_stats(segment_stats &&) noexcept = default;
+        segment_stats & operator=(segment_stats const &) noexcept = default;
+        segment_stats & operator=(segment_stats &&) noexcept = default;
         ~segment_stats() noexcept = default;
 
         segment_stats(size_t const i, size_t const ind, uint64_t const s, uint64_t const l)
@@ -179,7 +179,6 @@ struct metadata
                 sequences.push_back(seq);
                 fasta_ind++;
             }
-            std::stable_sort(sequences.begin(), sequences.end(), length_order());
         }
 
         void add_segment(size_t const ind, uint64_t const s, uint64_t const l)
@@ -344,9 +343,28 @@ struct metadata
         */
         metadata(split_arguments const & arguments)
         {
-            scan_database_file(arguments.seq_file);
+            for (auto & bin_files : arguments.bin_path)
+            {
+                //!TODO: handle case where multiple input files per bin
+                for (auto & bin_file : bin_files)
+                {
+                    scan_database_file(bin_file);      // for a clustered metagenome database segments == sequences
+                }
+            }
             seq_count = sequences.size();
-            scan_database_sequences(arguments);
+
+            if (arguments.metagenome)
+            {
+                for (sequence_stats & seq : sequences)
+                {
+                    add_segment(seq.ind, seq.ind, 0u, seq.len);
+                }
+            }
+            else
+            {
+                std::stable_sort(sequences.begin(), sequences.end(), length_order());
+                scan_database_sequences(arguments);
+            }
             seg_count = segments.size();
         }
 

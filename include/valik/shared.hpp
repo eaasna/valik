@@ -55,7 +55,8 @@ struct dna4_traits : seqan3::sequence_file_input_default_traits_dna
 
 struct split_arguments
 {
-    std::filesystem::path seq_file{};
+    std::vector<std::vector<std::string>> bin_path{};
+    std::filesystem::path db_file{};
     std::filesystem::path meta_out{"metadata.txt"};
 
     size_t pattern_size{150};

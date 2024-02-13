@@ -9,8 +9,8 @@ namespace valik::app
 void init_split_parser(sharg::parser & parser, split_arguments & arguments)
 {
     init_shared_meta(parser);
-    parser.add_positional_option(arguments.seq_file,
-                      sharg::config{.description = "File containing database sequences. If splitting --metagenome provide a list of cluster paths.",
+    parser.add_positional_option(arguments.db_file,
+                      sharg::config{.description = "File containing database sequences. If splitting --metagenome provide a text file with a list of cluster paths.",
                       .validator = sharg::input_file_validator{}});
     parser.add_option(arguments.meta_out,
                       sharg::config{.short_id = 'o',
@@ -75,10 +75,36 @@ void run_split(sharg::parser & parser)
     try_parsing(parser);
 
     arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);
+    // ==========================================
+    // Process bin_path:
+    // if building from clustered sequences each line in input corresponds to a bin
+    // if building from overlapping segments all sequences in one reference file
+    // ==========================================
+    auto sequence_file_validator{bin_validator{}.sequence_file_validator};
+
+    if (arguments.metagenome)
+    {
+        std::ifstream istrm{arguments.db_file};
+        std::string line;
+        while (std::getline(istrm, line))
+        {
+            if (!line.empty())
+            {
+                sequence_file_validator(line);
+                arguments.bin_path.emplace_back(std::vector<std::string>{line});
+            }
+        }
+    }
+    else
+    {
+        sequence_file_validator(arguments.db_file);
+        std::string bin_string{arguments.db_file.string()};
+        arguments.bin_path.emplace_back(std::vector<std::string>{bin_string});
+    }
 
     if (!parser.is_option_set("out"))
     {
-        arguments.meta_out = arguments.seq_file;
+        arguments.meta_out = arguments.db_file;
         arguments.meta_out.replace_extension("meta");
     }
 
