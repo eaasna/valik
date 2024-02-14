@@ -90,8 +90,16 @@ void run_split(sharg::parser & parser)
         {
             if (!line.empty())
             {
-                sequence_file_validator(line);
-                arguments.bin_path.emplace_back(std::vector<std::string>{line});
+                std::stringstream linestrm(line);
+                std::string filepath;
+                std::vector<std::string> bin_paths;
+                while (std::getline(linestrm, filepath, '\t'))
+                {
+                    sequence_file_validator(filepath);
+                    bin_paths.emplace_back(filepath);
+                }
+
+                arguments.bin_path.emplace_back(bin_paths);
             }
         }
     }
@@ -108,7 +116,7 @@ void run_split(sharg::parser & parser)
         arguments.meta_out.replace_extension("meta");
     }
 
-    if (!arguments.split_index && arguments.metagenome)
+    if (arguments.metagenome)
         arguments.split_index = true;
 
     if (!arguments.split_index && !arguments.only_split && !parser.is_option_set("ref-meta"))

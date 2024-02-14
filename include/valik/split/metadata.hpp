@@ -91,15 +91,17 @@ struct metadata
      *
      * All indices and positions are 0-based.
      *
-     *  \param id       Index of the segment in the vector of segments.
-     *  \param seq_ind  Index of the underlying sequence in the input FASTA file. Corresponds to sequence_stats::ind.
-     *  \param start    Segment start position in sequence.
-     *  \param len      Segment length.
+     *  \param id           Segment id.
+     *  \param seq_ind      Index of the underlying sequence in the input FASTA file. Corresponds to sequence_stats::ind.
+     *  \param bin_seq_inds  List of sequences (sequence_stats::ind) for a metagenome database.
+     *  \param start        Segment start position in sequence.
+     *  \param len          Segment length.
      */
     struct segment_stats
     {
         size_t id;
         size_t seq_ind;
+        std::vector<size_t> bin_seq_inds;
         uint64_t start;
         uint64_t len;
 
@@ -114,6 +116,14 @@ struct metadata
         {
             id = i;
             seq_ind = ind;
+            start = s;
+            len = l;
+        }
+
+        segment_stats(size_t const i, std::vector<size_t> const inds, uint64_t const s, uint64_t const l)
+        {
+            id = i;
+            bin_seq_inds = inds;
             start = s;
             len = l;
         }
@@ -150,7 +160,7 @@ struct metadata
         }
     };
 
-    uint64_t total_len;
+    uint64_t total_len{0};
     size_t seq_count;
     size_t seg_count;
 
@@ -165,12 +175,11 @@ struct metadata
          *
          * @param db_path Path to input file.
          */
-        void scan_database_file(std::filesystem::path const & db_path)
+        void scan_database_file(std::vector<std::vector<std::string>> const & bin_path)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
-            seqan3::sequence_file_input<traits_type> fin{db_path};
-            total_len = 0;
-            size_t fasta_ind = 0;
+            seqan3::sequence_file_input<traits_type> fin{bin_path[0][0]};   // single input file
+            size_t fasta_ind = sequences.size();
             for (auto & record : fin)
             {
                 trim_fasta_id(record.id());
@@ -179,6 +188,7 @@ struct metadata
                 sequences.push_back(seq);
                 fasta_ind++;
             }
+            std::stable_sort(sequences.begin(), sequences.end(), length_order());
         }
 
         void add_segment(size_t const ind, uint64_t const s, uint64_t const l)
@@ -191,6 +201,41 @@ struct metadata
         {
             segment_stats seg(i, ind, s, l);
             segments.push_back(seg);
+        }
+
+        void add_segment(size_t const i, std::vector<size_t> const & bin_seq_ids, uint64_t const s, uint64_t const l)
+        {
+            segment_stats seg(i, bin_seq_ids, s, l);
+            segments.push_back(seg);
+        }
+
+        /**
+         * @brief Function that scans over a metagenome database to extract sequences and segments.
+         *
+         * @param bin_path Path to input file.
+         */
+        void scan_metagenome_bin(std::vector<std::string> const & bin_files)
+        {
+            using traits_type = seqan3::sequence_file_input_default_traits_dna;
+            size_t segment_id = segments.size();
+            uint64_t bin_len{0};
+            std::vector<size_t> bin_seq_ids;
+            for (auto & bin_file : bin_files)
+            {
+                seqan3::sequence_file_input<traits_type> fin{bin_file};
+                size_t fasta_ind = sequences.size();
+                for (auto & record : fin)
+                {
+                    trim_fasta_id(record.id());
+                    sequence_stats seq(record.id(), fasta_ind, record.sequence().size());
+                    total_len += seq.len;
+                    bin_len += seq.len;
+                    bin_seq_ids.push_back(fasta_ind);
+                    sequences.push_back(seq);
+                    fasta_ind++;
+                }
+            }
+            add_segment(segment_id, bin_seq_ids, 0, bin_len); 
         }
 
         /**
@@ -343,28 +388,20 @@ struct metadata
         */
         metadata(split_arguments const & arguments)
         {
-            for (auto & bin_files : arguments.bin_path)
-            {
-                //!TODO: handle case where multiple input files per bin
-                for (auto & bin_file : bin_files)
-                {
-                    scan_database_file(bin_file);      // for a clustered metagenome database segments == sequences
-                }
-            }
-            seq_count = sequences.size();
-
             if (arguments.metagenome)
             {
-                for (sequence_stats & seq : sequences)
+                for (auto & bin_files : arguments.bin_path)
                 {
-                    add_segment(seq.ind, seq.ind, 0u, seq.len);
+                    scan_metagenome_bin(bin_files);
                 }
             }
             else
             {
-                std::stable_sort(sequences.begin(), sequences.end(), length_order());
+                scan_database_file(arguments.bin_path);
                 scan_database_sequences(arguments);
             }
+
+            seq_count = sequences.size();
             seg_count = segments.size();
         }
 
