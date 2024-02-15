@@ -133,7 +133,8 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
                 threadOptions.referenceLength = refLen;
                 threadOptions.searchSegment = true;
                 auto seg = ref_meta.segment_from_bin(bin_id);
-                threadOptions.binSequences.emplace_back(seg.seq_ind);
+                //!TODO: deal with metagenome database
+                threadOptions.binSequences.emplace_back(seg.seq_vec[0]);
                 threadOptions.segmentBegin = seg.start;
                 threadOptions.segmentEnd = seg.start + seg.len;
 

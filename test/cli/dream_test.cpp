@@ -19,7 +19,7 @@ TEST_P(dream_short_search, short_shared_mem)
     setup_tmp_dir();
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.txt");
+    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin");
     valik::metadata reference(ref_meta_path);
     std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
 
@@ -76,7 +76,7 @@ TEST_F(dream_short_search, no_matches)
                                                         "--window ", std::to_string(window_size),
                                                         "--kmer 13",
                                                         "--size 32k",
-                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.txt"),
+                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin"),
                                                         "--output ", ibf_path(number_of_bins, window_size));
     EXPECT_EQ(build.exit_code, 0);
 
@@ -87,7 +87,7 @@ TEST_F(dream_short_search, no_matches)
                                                         "--error-rate 0",
                                                         "--index ", ibf_path(number_of_bins, window_size),
                                                         "--query ", data("dummy_reads.fastq"),
-                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.txt"));
+                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin"));
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
@@ -112,10 +112,10 @@ TEST_P(dream_split_search, split_shared_mem)
     float error_rate = (float) number_of_errors / (float) pattern_size;
 
     size_t query_seg_count = 60;
-    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.txt");
+    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin");
     valik::metadata reference(ref_meta_path);
     std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
-    std::filesystem::path query_meta_path = data("query_seg_meta.txt");
+    std::filesystem::path query_meta_path = data("query_meta.bin");
 
     cli_test_result const split_query = execute_app("valik", "split",
                                                         data("query.fasta"),

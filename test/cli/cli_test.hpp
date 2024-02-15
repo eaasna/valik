@@ -129,7 +129,7 @@ struct valik_base : public cli_test
         name += std::to_string(overlap);
         name += "overlap";
         name += std::to_string(bins);
-        name += "bins.txt";
+        name += "bins.bin";
         return cli_test::data(name);
     }
 

@@ -322,7 +322,7 @@ TEST_F(argparse_search, shared_mem_metagenome)
                                                          "--query ", data("query.fq"),
                                                          "--index ", data("8bins19window.ibf"),
                                                          "--output search.gff",
-                                                         "--ref-meta ", data("150overlap4bins.txt"),
+                                                         "--ref-meta ", data("150overlap4bins.bin"),
                                                          "--pattern 100");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});

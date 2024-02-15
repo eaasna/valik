@@ -25,14 +25,14 @@ pat_overlap=49        # how much adjacent patterns overlap
 ref_input="ref.fasta"
 query="query.fasta"
 
-valik split "$query" --pattern 50 --seg-count 60 --out query_seg_meta.txt --without-parameter-tuning
+valik split "$query" --pattern 50 --seg-count 60 --out query_meta.bin --without-parameter-tuning
 
 e=1
 er=$(echo $e/$pattern | bc -l)
 for b in 4 16
 do
     echo "Splitting the genome into $b segments that overlap by $seg_overlap"
-    seg_meta="seg_meta"$seg_overlap"overlap"$b"bins.txt"
+    seg_meta="seg_meta"$seg_overlap"overlap"$b"bins.bin"
     valik split "$ref_input" --pattern "$seg_overlap" --seg-count "$b" --out "$seg_meta" --without-parameter-tuning
 
     for w in 13 15

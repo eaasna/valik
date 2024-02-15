@@ -17,7 +17,7 @@ do
     for b in 4 16
     do
         echo "Splitting the genome into $b segments that overlap by $p"
-        seg_meta="multi/"$p"overlap"$b"bins.txt"
+        seg_meta="multi/"$p"overlap"$b"bins.bin"
         valik split "$seg_input" --pattern "$p" --seg-count "$b" --out "$seg_meta" --without-parameter-tuning
     done
 done
@@ -43,7 +43,7 @@ query="single_query.fasta"
 for b in 4 16
 do
     echo "Splitting the genome into $b segments that overlap by $seg_overlap"
-    seg_meta="single/"$seg_overlap"overlap"$b"bins.txt"
+    seg_meta="single/"$seg_overlap"overlap"$b"bins.bin"
 
     valik split "$ref_input" --pattern "$seg_overlap" --seg-count "$b" --out "$seg_meta" --without-parameter-tuning
 

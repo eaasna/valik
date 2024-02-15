@@ -93,9 +93,9 @@ void find_thresholds_for_kmer_size(metadata const & ref_meta,
     std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\tmax_query_seg_len\n";
 
     auto best_params = param_set(attr.k, space.max_thresh, space);
-    for (uint8_t errors{1}; errors <= std::ceil(ref_meta.segment_overlap() * max_err); errors++)
+    for (uint8_t errors{1}; errors <= std::ceil(ref_meta.pattern_size * max_err) && errors <= space.max_errors; errors++)
     {
-        search_pattern pattern(errors, ref_meta.segment_overlap());
+        search_pattern pattern(errors, ref_meta.pattern_size);
         std::cout << errors / (double) pattern.l << '\t';
         if (kmer_lemma_threshold(pattern.l, attr.k, errors) > 1)
         {

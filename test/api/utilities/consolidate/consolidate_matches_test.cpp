@@ -35,7 +35,7 @@ std::filesystem::path consolidation_meta_path(size_t const number_of_bins, size_
     name += std::to_string(number_of_bins);
     name += "bins";
     name += std::to_string(overlap);
-    name += "overlap_reference_metadata.tsv";
+    name += "overlap_reference_metadata.bin";
     return data_path(name);
 }
 
@@ -99,11 +99,11 @@ void check_consolidation(std::set<std::string> const &  query_ids,
         auto initial_matches = initial | std::views::filter(query_match);
         auto consolidated_matches = actual | std::views::filter(query_match);
 
-        if (std::distance(initial_matches.begin(), initial_matches.end()) >= arguments.disableThresh)
+        if (std::abs(std::distance(initial_matches.begin(), initial_matches.end())) >= arguments.disableThresh)
         {
             EXPECT_EQ(std::distance(consolidated_matches.begin(), consolidated_matches.end()), 0);
         }
-        else if (std::distance(initial_matches.begin(), initial_matches.end()) > arguments.numMatches)
+        else if (std::abs(std::distance(initial_matches.begin(), initial_matches.end())) > arguments.numMatches)
         {
             EXPECT_EQ(std::distance(consolidated_matches.begin(), consolidated_matches.end()), arguments.numMatches);
         }

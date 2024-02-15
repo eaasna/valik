@@ -27,6 +27,6 @@ do
         out_dir=write_out_${pattern}_${bins}
         mkdir -p ${out_dir}
 
-        valik split database.fasta --pattern ${pattern} --seg-count ${bins} --out ${out_dir}/reference_metadata.txt --without-parameter-tuning
+        valik split database.fasta --pattern ${pattern} --seg-count ${bins} --out ${out_dir}/reference_metadata.bin --without-parameter-tuning
     done
 done

@@ -73,7 +73,7 @@ bool search_distributed(search_arguments const & arguments, search_time_statisti
                     auto seg = ref_meta->segment_from_bin(bin_id);
                     process_args.insert(process_args.end(), {index.bin_path()[0][0], std::string(cart_queries_path),
                                                             "--referenceLength", std::to_string(ref_len),
-                                                            "--sequenceOfInterest", std::to_string(seg.seq_ind),
+                                                            "--sequenceOfInterest", std::to_string(seg.seq_vec[0]),
                                                             "--segmentBegin", std::to_string(seg.start),
                                                             "--segmentEnd", std::to_string(seg.start + seg.len)});
                 }

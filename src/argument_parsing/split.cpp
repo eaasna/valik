@@ -113,7 +113,7 @@ void run_split(sharg::parser & parser)
     if (!parser.is_option_set("out"))
     {
         arguments.meta_out = arguments.db_file;
-        arguments.meta_out.replace_extension("meta");
+        arguments.meta_out.replace_extension("bin");
     }
 
     if (arguments.metagenome)

@@ -7,6 +7,7 @@
 #include <utilities/threshold/param_set.hpp>
 #include <valik/shared.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <ranges>
@@ -46,36 +47,58 @@ void trim_fasta_id(id_t & id)
  */
 struct metadata
 {
+    /** !\brief a metadata struct that represents a sequence file.
+     *
+     * \param id    Numerical file id.    
+     * \param path  Input fasta file path.
+     */
+    struct sequence_file
+    {
+        size_t id;
+        std::string path;
+
+        sequence_file() noexcept = default;
+        sequence_file(sequence_file const &) noexcept = default;
+        sequence_file & operator=(sequence_file const &) noexcept = default;
+        sequence_file & operator=(sequence_file &&) noexcept = default;
+        ~sequence_file() noexcept = default;
+        
+        sequence_file(size_t const i, std::string const p) : id(i), path(p) { }
+
+        template <class Archive>
+        void serialize(Archive & archive)
+        {
+            archive(id, path);
+        }
+    };
+
     /** !\brief a metadata struct that represents a single sequence.
      *
-     * \param id    The FASTA id.
-     * \param ind   0-based index in the input FASTA file.
-     * \param len   Sequence length.
+     * \param file_id   Numerical file id (sequence_file::id).
+     * \param id        The FASTA id.
+     * \param ind       0-based index in the input FASTA file.
+     * \param len       Sequence length.
      */
     struct sequence_stats
     {
+        size_t file_id;
         std::string id;
         size_t ind;
         uint64_t len;
 
         sequence_stats() noexcept = default;
         sequence_stats(sequence_stats const &) noexcept = default;
-        sequence_stats(sequence_stats &&) noexcept = default;
         sequence_stats & operator=(sequence_stats const &) noexcept = default;
         sequence_stats & operator=(sequence_stats &&) noexcept = default;
         ~sequence_stats() noexcept = default;
         
-        sequence_stats(std::string const fasta_id, size_t const fasta_ind, uint64_t const seq_length)
-        {
-            id = fasta_id;
-            ind = fasta_ind;
-            len = seq_length;
-        }
+        sequence_stats(size_t const seq_file_id, std::string const fasta_id, size_t const fasta_ind, uint64_t const seq_length) :
+                       file_id(seq_file_id), id(fasta_id), ind(fasta_ind), len(seq_length) {}
 
         template <class Archive>
         void serialize(Archive & archive)
         {
-            archive(id, ind, len);
+            archive(file_id, id, ind, len);
         }
     };
 
@@ -87,63 +110,56 @@ struct metadata
         }
     };
 
-    /** !\brief a struct that represents a single segment.
+    /** !\brief a struct that represents a single segment of a reference or query database.
      *
      * All indices and positions are 0-based.
      *
-     *  \param id           Segment id.
-     *  \param seq_ind      Index of the underlying sequence in the input FASTA file. Corresponds to sequence_stats::ind.
-     *  \param bin_seq_inds  List of sequences (sequence_stats::ind) for a metagenome database.
-     *  \param start        Segment start position in sequence.
+     *  \param id           Numerical segment id.
+     *  \param seq_vec      List of sequences (numerical ids corresponding to sequence_stats::ind) associated with this segment.
+     *  \param start        Segment start position in sequence if segment consists of a single subsequence. 0 for metagenome bin.
      *  \param len          Segment length.
      */
     struct segment_stats
     {
         size_t id;
-        size_t seq_ind;
-        std::vector<size_t> bin_seq_inds;
-        uint64_t start;
+        std::vector<size_t> seq_vec{};
+        uint64_t start{0};
         uint64_t len;
 
         segment_stats() noexcept = default;
         segment_stats(segment_stats const &) noexcept = default;
-        segment_stats(segment_stats &&) noexcept = default;
         segment_stats & operator=(segment_stats const &) noexcept = default;
         segment_stats & operator=(segment_stats &&) noexcept = default;
         ~segment_stats() noexcept = default;
 
-        segment_stats(size_t const i, size_t const ind, uint64_t const s, uint64_t const l)
+        segment_stats(size_t const ind, uint64_t const s, uint64_t const l) : start(s), len(l)
         {
-            id = i;
-            seq_ind = ind;
-            start = s;
-            len = l;
+            seq_vec.push_back(ind);
         }
 
-        segment_stats(size_t const i, std::vector<size_t> const inds, uint64_t const s, uint64_t const l)
-        {
-            id = i;
-            bin_seq_inds = inds;
-            start = s;
-            len = l;
-        }
-
-        segment_stats(size_t const ind, uint64_t const s, uint64_t const l)
-        {
-            seq_ind = ind;
-            start = s;
-            len = l;
+        segment_stats(size_t const & i, std::vector<size_t> & ind_vec, uint64_t const l) : id(i), len(l) 
+        { 
+            seq_vec = std::move(ind_vec);
         }
 
         std::string unique_id()
         {
-            return std::to_string(seq_ind) + "_" + std::to_string(start) + "_" + std::to_string(len);
+            std::string str_id{};
+            for (auto seq_ind : seq_vec)
+            {
+                str_id += std::to_string(seq_ind);
+                str_id += "_";
+            }
+            str_id += std::to_string(start);
+            str_id += "_";
+            str_id += std::to_string(len);
+            return str_id;
         }
 
         template <class Archive>
         void serialize(Archive & archive)
         {
-            archive(id, seq_ind, start, len);
+            archive(id, seq_vec, start, len);
         }
     };
 
@@ -156,14 +172,18 @@ struct metadata
 
         inline bool operator() (segment_stats const & left, segment_stats const & right)
         {
-            return (left.seq_ind < right.seq_ind);
+            if (left.seq_vec.size() > 1 || right.seq_vec.size() > 1)
+                throw std::runtime_error("Can't order sets of sets of sequences.");
+            return (left.seq_vec[0] < right.seq_vec[0]);
         }
     };
 
     uint64_t total_len{0};
     size_t seq_count;
     size_t seg_count;
+    size_t pattern_size;
 
+    std::vector<sequence_file> files;
     std::vector<sequence_stats> sequences;
     
     private:    
@@ -178,12 +198,13 @@ struct metadata
         void scan_database_file(std::vector<std::vector<std::string>> const & bin_path)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
+            files.emplace_back(0, bin_path[0][0]);
             seqan3::sequence_file_input<traits_type> fin{bin_path[0][0]};   // single input file
             size_t fasta_ind = sequences.size();
             for (auto & record : fin)
             {
                 trim_fasta_id(record.id());
-                sequence_stats seq(record.id(), fasta_ind, record.sequence().size());
+                sequence_stats seq(0, record.id(), fasta_ind, record.sequence().size());    // there is only a single sequence file
                 total_len += seq.len;
                 sequences.push_back(seq);
                 fasta_ind++;
@@ -191,22 +212,14 @@ struct metadata
             std::stable_sort(sequences.begin(), sequences.end(), length_order());
         }
 
-        void add_segment(size_t const ind, uint64_t const s, uint64_t const l)
+        void add_segment(size_t const seq_id, uint64_t const s, uint64_t const l)
         {
-            segment_stats seg(ind, s, l);
-            segments.push_back(seg);
+            segments.emplace_back(seq_id, s, l);
         }
 
-        void add_segment(size_t const i, size_t const ind, uint64_t const s, uint64_t const l)
+        void add_segment(size_t const i, std::vector<size_t> & bin_seq_ids, uint64_t const l)
         {
-            segment_stats seg(i, ind, s, l);
-            segments.push_back(seg);
-        }
-
-        void add_segment(size_t const i, std::vector<size_t> const & bin_seq_ids, uint64_t const s, uint64_t const l)
-        {
-            segment_stats seg(i, bin_seq_ids, s, l);
-            segments.push_back(seg);
+            segments.emplace_back(i, bin_seq_ids, l);
         }
 
         /**
@@ -217,17 +230,18 @@ struct metadata
         void scan_metagenome_bin(std::vector<std::string> const & bin_files)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
-            size_t segment_id = segments.size();
             uint64_t bin_len{0};
             std::vector<size_t> bin_seq_ids;
-            for (auto & bin_file : bin_files)
+            for (size_t file_id{0}; file_id < bin_files.size(); file_id++)
             {
+                std::string bin_file = bin_files[file_id];
+                files.emplace_back(file_id, bin_file);
                 seqan3::sequence_file_input<traits_type> fin{bin_file};
                 size_t fasta_ind = sequences.size();
                 for (auto & record : fin)
                 {
                     trim_fasta_id(record.id());
-                    sequence_stats seq(record.id(), fasta_ind, record.sequence().size());
+                    sequence_stats seq(file_id, record.id(), fasta_ind, record.sequence().size());
                     total_len += seq.len;
                     bin_len += seq.len;
                     bin_seq_ids.push_back(fasta_ind);
@@ -235,7 +249,7 @@ struct metadata
                     fasta_ind++;
                 }
             }
-            add_segment(segment_id, bin_seq_ids, 0, bin_len); 
+            add_segment(segments.size(), bin_seq_ids, bin_len); 
         }
 
         /**
@@ -403,6 +417,7 @@ struct metadata
 
             seq_count = sequences.size();
             seg_count = segments.size();
+            pattern_size = arguments.pattern_size;
         }
 
         /**
@@ -451,7 +466,10 @@ struct metadata
             if (sequences.size() <= ind)
                 throw std::runtime_error{"Sequence " + std::to_string(ind) + " index out of range."};
 
-            return segments | std::views::filter([ind](segment_stats const & seg) {return ind == seg.seq_ind;});
+            return segments | std::views::filter([ind](segment_stats const & seg) 
+            {
+                return (std::find(seg.seq_vec.begin(), seg.seq_vec.end(), ind) != seg.seq_vec.end());
+            });
         }
 
         /**
@@ -463,7 +481,7 @@ struct metadata
         {
             std::ofstream os(filepath, std::ios::binary);
             cereal::BinaryOutputArchive archive(os);
-            archive(total_len, sequences, segments);
+            archive(total_len, pattern_size, files, sequences, segments);
         }
       
         /**
@@ -475,7 +493,7 @@ struct metadata
         {
             std::ifstream is(filepath, std::ios::binary);
             cereal::BinaryInputArchive archive(is);
-            archive(total_len, sequences, segments);
+            archive(total_len, pattern_size, files, sequences, segments);
             seq_count = sequences.size();
             seg_count = segments.size();
         }
@@ -488,8 +506,14 @@ struct metadata
 
             out_str << "$\n";
 
-            for (const auto & seg : segments)
-                out_str << seg.id << '\t' << seg.seq_ind << '\t' << seg.start << '\t' << seg.len << '\n';
+            for (size_t seg_id{0}; seg_id < segments.size(); seg_id++)
+            {
+                segment_stats seg = segments[seg_id];
+                out_str << seg_id << '\t';
+                for (size_t ind : seg.seq_vec) 
+                    out_str << ind << '\t';
+                out_str << seg.start << '\t' << seg.len << '\n';
+            }
 
             out_str << "$\n";
 
@@ -519,12 +543,6 @@ struct metadata
             double stdev = std::sqrt(sq_sum / segments.size() - mean * mean);
 
             return stdev / mean;
-        }
-
-        size_t segment_overlap() const
-        {
-            assert(segments.size() > 1);
-            return segments[0].len - segments[1].start;
         }
 
         /**
@@ -564,7 +582,7 @@ struct metadata
             the probability of 1 k-mer out of n matching is P(1 k-mer matches) = (n take 1) * p^1 * (1 - p)^(n - 1).
             */
 
-            size_t kmers_per_pattern = segment_overlap() - params.k + 1;
+            size_t kmers_per_pattern = pattern_size - params.k + 1;
             for (uint8_t matching_kmer_count{0}; matching_kmer_count < params.t; matching_kmer_count++)
             {
                 fpr -= combinations(matching_kmer_count, kmers_per_pattern) * 
@@ -584,7 +602,7 @@ struct metadata
             if (pattern_p < 9e-6) // avoid very small floating point numbers
                 return 100000;
             size_t max_patterns_per_segment = std::round(1.0 / pattern_p) - 1;
-            return segment_overlap() + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
+            return pattern_size + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
         }
 };
 
