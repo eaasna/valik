@@ -162,9 +162,6 @@ declare_datasource (FILE 16bins50overlap_dream_all.gff
 declare_datasource (FILE 16bins50overlap_reference_metadata.bin
                 URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/16bins50overlap_reference_metadata.bin
                 URL_HASH SHA256=d135d1e85cf27a7b1f256e6fff90d8b112c214abf0969bff3a7d7e05d8b40a40)
-declare_datasource (FILE 16bins50overlap_reference_metadata.tsv
-                URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/16bins50overlap_reference_metadata.tsv
-                URL_HASH SHA256=d135d1e85cf27a7b1f256e6fff90d8b112c214abf0969bff3a7d7e05d8b40a40)
 declare_datasource (FILE 8bins50overlap_dream_all.gff
                 URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/8bins50overlap_dream_all.gff
                 URL_HASH SHA256=f03c93ddb758a7e9ef89e3243dca9fb49b97a1ba3239408ffc30f8ff486982c8)
