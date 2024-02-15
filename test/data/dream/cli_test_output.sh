@@ -39,7 +39,7 @@ do
     do
         echo "Creating IBF for w=$w and k=$k where segments overlap by $seg_overlap"
         index=$b"bins"$w"window.ibf"
-        valik build "$ref_input" --kmer "$k" --window "$w" --size "$ibf_size" --output "$index" --ref-meta "$seg_meta"
+        valik build --kmer "$k" --window "$w" --size "$ibf_size" --output "$index" --ref-meta "$seg_meta"
 
         echo "Searching IBF with $e errors"
         dist_out=$b"bins"$w"window"$e"error.gff"

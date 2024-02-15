@@ -83,7 +83,6 @@ struct build_arguments
     uint8_t threads{1u};
 
     std::vector<std::vector<std::string>> bin_path{};
-    std::filesystem::path bin_file{};
     std::filesystem::path out_path{"./"};
     std::string size{};
     uint64_t bins{64};

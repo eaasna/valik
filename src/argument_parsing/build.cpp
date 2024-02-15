@@ -6,10 +6,6 @@ namespace valik::app
 void init_build_parser(sharg::parser & parser, build_arguments & arguments)
 {
     init_shared_meta(parser);
-    parser.add_positional_option(arguments.bin_file,
-                                 sharg::config{.description = "File containing one file per line per bin when building from clustered sequences. "
-                                                              "Input sequence file when building from overlapping segments.",
-                                 .validator = sharg::input_file_validator{}});
     parser.add_option(arguments.out_path,
                       sharg::config{.short_id = '\0',
                       .long_id = "output",
@@ -29,9 +25,8 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
     parser.add_option(arguments.ref_meta_path,
                     sharg::config{.short_id = '\0',
                     .long_id = "ref-meta",
-                    .description = "Path to reference metadata table created by valik split. "
-                                   "Provide reference metadata to create the IBF "
-                                   "from reference segments instead of a clustered database.",
+                    .description = "Path to reference metadata created by valik split.",
+                    .required = true,
                     .validator = sharg::input_file_validator{}});
     parser.add_option(arguments.threads,
                     sharg::config{.short_id = '\0',
@@ -72,44 +67,11 @@ void run_build(sharg::parser & parser)
     init_build_parser(parser, arguments);
     try_parsing(parser);
 
-    // ==========================================
-    // Process bin_path:
-    // if building from clustered sequences each line in input corresponds to a bin
-    // if building from overlapping segments all sequences in one reference file
-    // ==========================================
-    auto sequence_file_validator{bin_validator{}.sequence_file_validator};
-
-    // build from reference clusters
-    if (arguments.ref_meta_path.empty())
+    if (!parser.is_option_set("kmer") && !parser.is_option_set("window"))
     {
-        std::ifstream istrm{arguments.bin_file};
-        std::string line;
-
-        while (std::getline(istrm, line))
-        {
-            if (!line.empty())
-            {
-                sequence_file_validator(line);
-                arguments.bin_path.emplace_back(std::vector<std::string>{line});
-            }
-        }
-        arguments.bins = arguments.bin_path.size();
-    }
-    // build from reference segments
-    else
-    {
-        metadata meta(arguments.ref_meta_path);
-        arguments.bins = meta.seg_count;
-        sequence_file_validator(arguments.bin_file);
-        std::string bin_string{arguments.bin_file.string()};
-        arguments.bin_path.emplace_back(std::vector<std::string>{bin_string});
-
-        if (!parser.is_option_set("kmer") && !parser.is_option_set("window"))
-        {
-            //!TODO: read in parameter metadata file
-            arguments.kmer_size = 12;
-            arguments.window_size = 12;
-        }
+        //!TODO: read in parameter metadata file
+        arguments.kmer_size = 12;
+        arguments.window_size = 12;
     }
 
     // ==========================================
@@ -129,6 +91,35 @@ void run_build(sharg::parser & parser)
             arguments.window_size = arguments.shape.size() + 2;
         else
             arguments.window_size = arguments.shape.size();
+    }
+
+    // ==========================================
+    // Process bin_path:
+    // if building from clustered sequences each line in input corresponds to a bin
+    // if building from overlapping segments all sequences in one reference file
+    // ==========================================
+    auto sequence_file_validator{bin_validator{}.sequence_file_validator};
+
+    metadata meta(arguments.ref_meta_path);
+    arguments.bins = meta.seg_count;
+    if (meta.files.size() == 1)
+        arguments.bin_path.push_back(std::vector<std::string>{meta.files[0].path});
+    else
+    {
+        for (auto & seg : meta.segments)
+        {
+            std::unordered_set<size_t> file_ids{};
+            for (size_t seq_id : seg.seq_vec)
+            {
+                file_ids.emplace(meta.sequences[seq_id].file_id);
+            }
+            std::vector<std::string> bin_files{};
+            for (size_t file_id : file_ids)
+            {
+                bin_files.push_back(meta.files[file_id].path);
+            }
+            arguments.bin_path.push_back(bin_files);
+        }
     }
 
     try

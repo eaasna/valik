@@ -27,6 +27,7 @@ target_use_datasources (valik_test FILES bin_4.fasta)
 target_use_datasources (valik_test FILES bin_5.fasta)
 target_use_datasources (valik_test FILES bin_6.fasta)
 target_use_datasources (valik_test FILES bin_7.fasta)
+target_use_datasources (valik_test FILES bin_meta.bin)
 
 target_use_datasources (valik_test FILES query.fasta)
 target_use_datasources (valik_test FILES ref.fasta)

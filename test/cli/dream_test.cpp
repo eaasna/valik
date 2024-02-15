@@ -24,13 +24,13 @@ TEST_P(dream_short_search, short_shared_mem)
     std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
 
     cli_test_result const build = execute_app("valik", "build",
-                                                        data("ref.fasta"),
-                                                        "--window", std::to_string(window_size),
-                                                        "--kmer 13",
-                                                        "--size 32k",
-                                                        "--ref-meta", ref_meta_path,
-                                                        "--output ", index_path);
+                                              "--window", std::to_string(window_size),
+                                              "--kmer 13",
+                                              "--size 32k",
+                                              "--ref-meta", ref_meta_path,
+                                              "--output ", index_path);
     EXPECT_EQ(build.exit_code, 0);
+    EXPECT_EQ(build.err, std::string{});
 
     cli_test_result const result = execute_app("valik", "search",
                                                         "--output search.gff",
@@ -72,13 +72,13 @@ TEST_F(dream_short_search, no_matches)
     size_t number_of_bins = 4;
     size_t window_size = 15;
     cli_test_result const build = execute_app("valik", "build",
-                                                        data("ref.fasta"),
                                                         "--window ", std::to_string(window_size),
                                                         "--kmer 13",
                                                         "--size 32k",
                                                         "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin"),
                                                         "--output ", ibf_path(number_of_bins, window_size));
     EXPECT_EQ(build.exit_code, 0);
+    EXPECT_EQ(build.err, std::string{});
 
     cli_test_result const result = execute_app("valik", "search",
                                                         "--output search.gff",
@@ -126,7 +126,6 @@ TEST_P(dream_split_search, split_shared_mem)
     EXPECT_EQ(split_query.exit_code, 0);
 
     cli_test_result const build = execute_app("valik", "build",
-                                                        data("ref.fasta"),
                                                         "--window", std::to_string(window_size),
                                                         "--kmer 13",
                                                         "--size 32k",

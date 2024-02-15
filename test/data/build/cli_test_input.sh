@@ -39,3 +39,5 @@ done
 
 # Create metadata list of bin file names
 seq -f "bin_%0g.fasta" 0 $((BIN_NUMBER-1)) > bin_paths.txt
+
+valik split bin_paths.txt --metagenome --out bin_meta.bin

@@ -62,13 +62,13 @@ private:
             }
         };
 
-        if (!arguments->ref_meta_path.empty())
+        if (arguments->bin_path.size() == 1)
         {
             metadata meta(arguments->ref_meta_path);
 
             auto & ibf = index.ibf();
             size_t i = 0;
-            for (auto && [seq] : sequence_file_t{arguments->bin_file})
+            for (auto && [seq] : sequence_file_t{arguments->bin_path[0][0]})
             {
                 for (auto & seg : meta.segments_from_ind(i))
                 {

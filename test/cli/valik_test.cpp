@@ -61,8 +61,6 @@ TEST_F(valik_split_clusters, split_metagenome_clusters)
 
     EXPECT_EQ(one_per_bin_meta.total_len, two_per_bin_meta.total_len);
     EXPECT_EQ(one_per_bin_meta.total_len, 8192*2);    // hard coded value from test/data/build/cli_test_input.sh
-    EXPECT_EQ(one_per_bin_meta.files.size(), two_per_bin_meta.files.size());
-    EXPECT_EQ(one_per_bin_meta.files.size(), genome_count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,11 +71,10 @@ TEST_P(valik_split_ref, split_ref)
 {
     auto const [seg_count, overlap] = GetParam();
 
-    std::string ref_meta = "reference_metadata.bin";
     cli_test_result const result = execute_app("valik", "split",
                                                         data("ref.fasta"),
                                                         "--split-index",
-                                                        "--out ", ref_meta, 
+                                                        "--out reference_metadata.txt",
                                                         "--seg-count ", std::to_string(seg_count),
                                                         "--pattern ", std::to_string(overlap));
 
@@ -86,7 +83,7 @@ TEST_P(valik_split_ref, split_ref)
     EXPECT_EQ(result.err, std::string{});
 
 
-    valik::metadata meta(ref_meta);
+    valik::metadata meta("reference_metadata.txt");
     if (meta.seg_count < 97)
         EXPECT_EQ(meta.seg_count, 64);
     else
@@ -113,10 +110,9 @@ TEST_P(valik_split_various, split_various_lengths)
 {
     auto const [seg_count, overlap] = GetParam();
 
-    std::string query_meta = "query_metadata.bin";
     cli_test_result const result = execute_app("valik", "split",
                                                          data("various_chromosome_lengths.fasta"),
-                                                         "--out ", query_meta,
+                                                         "--out query_metadata.txt",
                                                          "--seg-count ", std::to_string(seg_count),
                                                          "--pattern ", std::to_string(overlap), 
                                                          "--ref-meta ", segment_metadata_path(150, 4));
@@ -126,7 +122,7 @@ TEST_P(valik_split_various, split_various_lengths)
     EXPECT_EQ(result.err, std::string{"Sequence: chr5 is too short and will be skipped.\n"}); 
     auto expected_segments = valik::metadata(segment_metadata_path(overlap, seg_count));
     std::string expected_segment_str = expected_segments.to_string();
-    auto actual_segments = valik::metadata(query_meta);
+    auto actual_segments = valik::metadata("query_metadata.txt");
     std::string actual_segment_str = actual_segments.to_string();
     EXPECT_TRUE(expected_segment_str == actual_segment_str);
 }
@@ -146,10 +142,9 @@ TEST_P(valik_split_short, split_many_short)
 {
     auto const [seg_count, overlap] = GetParam();
 
-    std::string query_meta = "query_metadata.bin";
     cli_test_result const result = execute_app("valik", "split",
                                                         data("query.fasta"),
-                                                        "--out ", query_meta,
+                                                        "--out query_metadata.txt",
                                                         "--ref-meta ", segment_metadata_path(150, 4), 
                                                         "--seg-count ", std::to_string(seg_count),
                                                         "--pattern ", std::to_string(overlap));
@@ -171,7 +166,7 @@ TEST_P(valik_split_short, split_many_short)
         EXPECT_EQ(result.err, expected);
     }
 
-    valik::metadata meta(query_meta);
+    valik::metadata meta("query_metadata.txt");
     EXPECT_GE(0.1f, meta.segment_length_cv());  // create segments of roughly equal length
 }
 
@@ -189,10 +184,9 @@ TEST_P(valik_split_long, split_few_long)
 {
     auto const [seg_count, overlap] = GetParam();
 
-    std::string ref_meta = "reference_metadata.bin";
     cli_test_result const result = execute_app("valik", "split",
                                                         data("ref.fasta"),
-                                                        "--out ", ref_meta, 
+                                                        "--out reference_metadata.txt",
                                                         "--ref-meta", segment_metadata_path(150, 4),
                                                         "--seg-count ", std::to_string(seg_count),
                                                         "--pattern ", std::to_string(overlap));
@@ -200,7 +194,7 @@ TEST_P(valik_split_long, split_few_long)
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
 
-    valik::metadata meta(ref_meta);
+    valik::metadata meta("reference_metadata.txt");
      
     if (seg_count == meta.seq_count) // one-to-one pairing of sequences and segments
     {
@@ -232,7 +226,7 @@ TEST_F(split_options, too_few_segments)
     cli_test_result const result = execute_app("valik", "split", data("query.fasta"), 
                                                "--ref-meta", segment_metadata_path(150, 4),
                                                "--seg-count", std::to_string(n), "--pattern", std::to_string(o),
-                                               "--out", "meta.bin");
+                                               "--out", "meta.txt");
     std::string const expected
     {
         "[Error] Can not split 31 sequences into " + std::to_string(n) + " segments.\n"
@@ -250,7 +244,7 @@ TEST_F(split_options, overlap_too_large)
     cli_test_result const result = execute_app("valik", "split", data("query.fasta"), 
                                                "--ref-meta", segment_metadata_path(150, 4),
                                                "--seg-count", std::to_string(n), "--pattern", std::to_string(o),
-                                               "--out", "meta.bin");
+                                               "--out", "meta.txt");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     std::string err_first_half = result.err.substr(0, result.err.find("length") + 6);
@@ -267,7 +261,7 @@ TEST_F(split_options, too_many_segments)
     cli_test_result const result = execute_app("valik", "split", data("query.fasta"), 
                                                "--ref-meta", segment_metadata_path(150, 4),
                                                "--seg-count", std::to_string(n), "--pattern", std::to_string(o),
-                                               "--out", "meta.bin");
+                                               "--out", "meta.txt");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     std::string err_first_half = result.err.substr(0, result.err.find("length") + 6);
@@ -288,9 +282,9 @@ TEST_P(valik_build_clusters, build_from_clusters)
 
     {
         std::ofstream file{"bin_paths.txt"};
-    for (size_t i{0}; i < number_of_bins; i++)
+        for (size_t i{0}; i < number_of_bins; i++)
         {
-        std::string file_path = cli_test::data("bin_" + std::to_string(i) + ".fasta");
+            std::string file_path = cli_test::data("bin_" + std::to_string(i) + ".fasta");
             file << file_path << '\n';
         }
         file << '\n';
@@ -301,8 +295,8 @@ TEST_P(valik_build_clusters, build_from_clusters)
                                                          "--window ", std::to_string(window_size),
                                                          "--size 32k",
                                                          "--threads ", run_parallel ? "2" : "1",
-                                                         "--output index.ibf",
-                                                         "bin_paths.txt");
+                                                         "--output index.ibf", 
+                                                         "--ref-meta ", data("bin_meta.bin"));
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
@@ -330,17 +324,15 @@ TEST_P(valik_build_segments, build_from_segments)
 {
     auto const [overlap, number_of_bins, window_size] = GetParam();
 
-    std::string seg_input = cli_test::data("single_reference.fasta");
     std::string ref_meta_path = cli_test::data(std::to_string(overlap) + "overlap" + std::to_string(number_of_bins) + "bins.bin");
 
     //!TODO: the paths in the index are not data(path.fasta) so the file can't be opened by stellar (only a testing issue)
     cli_test_result const result = execute_app("valik", "build",
-                                               "--kmer 13",
-                                               "--window ", std::to_string(window_size),
-                                               "--size 32k",
-                                               "--output index.ibf",
-                                               "--ref-meta", ref_meta_path,
-                                               seg_input);
+                                                         "--kmer 13",
+                                                         "--window ", std::to_string(window_size),
+                                                         "--size 32k",
+                                                         "--output index.ibf",
+                                                         "--ref-meta", ref_meta_path);
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
