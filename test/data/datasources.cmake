@@ -248,9 +248,6 @@ declare_datasource (FILE query_meta.bin
 declare_datasource (FILE ref.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/ref.fasta
                 URL_HASH SHA256=47f808d207c4c90afebbe1c8ab28990ec0e3e777c75ec787099279005428f3da)
-declare_datasource (FILE ref_meta.txt
-                URL ${CMAKE_SOURCE_DIR}/test/data/dream/ref_meta.txt
-                URL_HASH SHA256=cfaea330c4abde12e75cec5ae8b74ffd985d2b1d4ad1620b72e064f17488e1d5)
 declare_datasource (FILE seg_meta150overlap16bins.bin
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/seg_meta150overlap16bins.bin
                 URL_HASH SHA256=1425d9d43191764724fb88afc9273c89d7448efc949eb9ac022aaa570394d8d7)
