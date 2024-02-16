@@ -83,28 +83,25 @@ param_set get_best_params(search_pattern const & pattern,
  * @brief For a chosen kmer size and up to some maximum error rate find the best thresholds. 
  *        Consider different error rates up to max_err.
 */
-void find_thresholds_for_kmer_size(metadata const & ref_meta,
-                                   kmer_attributes const attr, 
-                                   double const max_err)
+kmer_thresholds find_thresholds_for_kmer_size(metadata const & ref_meta,
+                                              kmer_attributes const attr, 
+                                              double const max_err)
 {
     param_space space;
-    std::cout.precision(3);
-    std::cout << "Recommended shared " << std::to_string(attr.k) << "-mer thresholds for different error rates\n";
-    std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\tmax_query_seg_len\n";
 
     auto best_params = param_set(attr.k, space.max_thresh, space);
+    kmer_thresholds kmer_thresh{best_params.k, ref_meta.pattern_size};
     for (uint8_t errors{1}; errors <= std::ceil(ref_meta.pattern_size * max_err) && errors <= space.max_errors; errors++)
     {
+        bool is_heuristic{false};
         search_pattern pattern(errors, ref_meta.pattern_size);
-        std::cout << errors / (double) pattern.l << '\t';
         if (kmer_lemma_threshold(pattern.l, attr.k, errors) > 1)
         {
             best_params.t = kmer_lemma_threshold(pattern.l, attr.k, errors);
-            std::cout << "kmer lemma\t";
         }
         else
         {
-            std::cout << "heuristic\t";
+            is_heuristic = true;
             double best_score = pattern.l;
             for (uint8_t t{1}; t <= space.max_thresh; t++)
             {
@@ -118,10 +115,12 @@ void find_thresholds_for_kmer_size(metadata const & ref_meta,
             }
         }
 
-        std::cout << std::to_string(best_params.t) << '\t' << attr.fnr_for_param_set(pattern, best_params) << '\t'
-                  << ref_meta.pattern_spurious_match_prob(best_params) << '\t' 
-                  << std::to_string(ref_meta.max_segment_len(best_params)) << '\n';
+        error_threshold error_thresh(best_params, pattern, is_heuristic, attr.fnr_for_param_set(pattern, best_params), 
+                                     ref_meta.pattern_spurious_match_prob(best_params), ref_meta.max_segment_len(best_params));
+        kmer_thresh.add_error_rate(errors, error_thresh);
     }
+
+    return kmer_thresh;
 }
 
 }   // namespace valik

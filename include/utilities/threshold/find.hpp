@@ -1,6 +1,8 @@
 #pragma once
 
 #include <utilities/threshold/kmer_attributes.hpp>
+#include <utilities/threshold/kmer_thresholds.hpp>
+
 #include <valik/split/metadata.hpp>
 
 namespace valik
@@ -24,8 +26,8 @@ param_set get_best_params(search_pattern const & pattern,
 /**
  * @brief For a chosen kmer size and some maximum error rate find the best threshold. 
 */
-void find_thresholds_for_kmer_size(metadata const & ref_meta,
-                                   kmer_attributes const attr, 
-                                   double const max_err);
+kmer_thresholds find_thresholds_for_kmer_size(metadata const & ref_meta,
+                                             kmer_attributes const attr, 
+                                             double const max_err);
 
 }   // namespace valik

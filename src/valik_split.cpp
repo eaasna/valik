@@ -14,7 +14,10 @@ void valik_split(split_arguments & arguments)
         arguments.seg_count = adjust_bin_count(arguments.seg_count_in);
     else
     {
-        //!TODO: read number of segments from reference metadata
+        std::filesystem::path kmer_thresh_file{arguments.meta_out};
+        kmer_thresh_file.replace_extension("arg");
+        kmer_thresholds kmer_thresh{kmer_thresh_file};
+        std::cout << "Max errors\t" << std::to_string(kmer_thresh.max_errors) << '\n';   
         arguments.seg_count = arguments.seg_count_in;
     }
 
@@ -38,16 +41,16 @@ void valik_split(split_arguments & arguments)
             arguments.kmer_size = best_params.k;
             kmer_attributes attr = attr_vec[arguments.kmer_size - std::get<0>(space.kmer_range)];
 
+            kmer_thresholds kmer_thresh = find_thresholds_for_kmer_size(meta, attr, arguments.error_rate);
             if (arguments.verbose)
             {
                 std::cout << "\n-----------Index build parameters-----------\n";
                 std::cout << "db length " << meta.total_len << "bp\n";
-                std::cout << "min local match length " << arguments.pattern_size << "bp\n";
-                std::cout << "max error rate " << arguments.error_rate << "\n";
-                std::cout << "kmer size " << std::to_string(arguments.kmer_size) << '\n';
-    
-                find_thresholds_for_kmer_size(meta, attr, arguments.error_rate);
+                kmer_thresh.print();
             }
+            std::filesystem::path kmer_thresh_out{arguments.meta_out};
+            kmer_thresh_out.replace_extension("arg");
+            kmer_thresh.save(kmer_thresh_out);
         }
         else
         {
