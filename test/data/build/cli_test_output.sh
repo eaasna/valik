@@ -8,3 +8,5 @@ do
     output="8bins"$w"window.ibf"
     valik build --window "$w" --kmer 19 --output "$output" --size 32k --ref-meta bin_meta.bin
 done
+
+rm bin_meta.bin

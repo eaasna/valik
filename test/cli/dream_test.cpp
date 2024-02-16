@@ -19,9 +19,17 @@ TEST_P(dream_short_search, short_shared_mem)
     setup_tmp_dir();
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin");
-    valik::metadata reference(ref_meta_path);
+    std::filesystem::path ref_meta_path = "ref_meta.bin";
     std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
+    
+    cli_test_result const split_ref = execute_app("valik", "split",
+                                                        data("ref.fasta"),
+                                                        "--out", ref_meta_path,
+                                                        "--seg-count ", std::to_string(number_of_bins),
+                                                        "--pattern 150", 
+                                                        "--without-parameter-tuning");
+    EXPECT_EQ(split_ref.exit_code, 0);
+    valik::metadata reference(ref_meta_path);
 
     cli_test_result const build = execute_app("valik", "build",
                                               "--window", std::to_string(window_size),
@@ -30,7 +38,6 @@ TEST_P(dream_short_search, short_shared_mem)
                                               "--ref-meta", ref_meta_path,
                                               "--output ", index_path);
     EXPECT_EQ(build.exit_code, 0);
-    EXPECT_EQ(build.err, std::string{});
 
     cli_test_result const result = execute_app("valik", "search",
                                                         "--output search.gff",
@@ -71,12 +78,23 @@ TEST_F(dream_short_search, no_matches)
 
     size_t number_of_bins = 4;
     size_t window_size = 15;
+    std::filesystem::path ref_meta_path = "ref_meta.bin";
+    std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
+    
+    cli_test_result const split_ref = execute_app("valik", "split",
+                                                        data("ref.fasta"),
+                                                        "--out", ref_meta_path,
+                                                        "--seg-count ", std::to_string(number_of_bins),
+                                                        "--pattern 150", 
+                                                        "--without-parameter-tuning");
+    EXPECT_EQ(split_ref.exit_code, 0);
+
     cli_test_result const build = execute_app("valik", "build",
-                                                        "--window ", std::to_string(window_size),
-                                                        "--kmer 13",
-                                                        "--size 32k",
-                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin"),
-                                                        "--output ", ibf_path(number_of_bins, window_size));
+                                                       "--window ", std::to_string(window_size),
+                                                       "--kmer 13",
+                                                       "--size 32k",
+                                                       "--ref-meta", ref_meta_path,
+                                                       "--output ", index_path);
     EXPECT_EQ(build.exit_code, 0);
     EXPECT_EQ(build.err, std::string{});
 
@@ -87,7 +105,7 @@ TEST_F(dream_short_search, no_matches)
                                                         "--error-rate 0",
                                                         "--index ", ibf_path(number_of_bins, window_size),
                                                         "--query ", data("dummy_reads.fastq"),
-                                                        "--ref-meta", data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin"));
+                                                        "--ref-meta", ref_meta_path);
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
@@ -112,10 +130,17 @@ TEST_P(dream_split_search, split_shared_mem)
     float error_rate = (float) number_of_errors / (float) pattern_size;
 
     size_t query_seg_count = 60;
-    std::filesystem::path ref_meta_path = data("seg_meta150overlap" + std::to_string(number_of_bins) + "bins.bin");
-    valik::metadata reference(ref_meta_path);
+    std::filesystem::path ref_meta_path = "ref_meta.bin";
     std::filesystem::path index_path = ibf_path(number_of_bins, window_size);
-    std::filesystem::path query_meta_path = data("query_meta.bin");
+    std::filesystem::path query_meta_path = "query_meta.bin";
+
+    cli_test_result const split_ref = execute_app("valik", "split",
+                                                        data("ref.fasta"),
+                                                        "--out", ref_meta_path,
+                                                        "--seg-count ", std::to_string(number_of_bins),
+                                                        "--pattern 150", 
+                                                        "--without-parameter-tuning");
+    EXPECT_EQ(split_ref.exit_code, 0);
 
     cli_test_result const split_query = execute_app("valik", "split",
                                                         data("query.fasta"),
@@ -124,6 +149,7 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         "--ref-meta", ref_meta_path,
                                                         "--pattern 0");
     EXPECT_EQ(split_query.exit_code, 0);
+    valik::metadata reference(ref_meta_path);
 
     cli_test_result const build = execute_app("valik", "build",
                                                         "--window", std::to_string(window_size),

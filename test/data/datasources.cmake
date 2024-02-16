@@ -92,21 +92,12 @@ declare_datasource (FILE bin_6.fasta
 declare_datasource (FILE bin_7.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_7.fasta
                 URL_HASH SHA256=45063104427a48892ba4ccb45cc295dc94760f08c1db90e6f3a73744591ada68)
-declare_datasource (FILE bin_meta.bin
-                URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_meta.bin
-                URL_HASH SHA256=303da9e67ae926a711e1ff86950f63aac5e5a57db7d4cb103a2163240f26de08)
 declare_datasource (FILE bin_paths.txt
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_paths.txt
                 URL_HASH SHA256=614e23263b689c7b4cc0ae41e99aeb5b43b351f865b4604f892320f2cc4377c7)
 declare_datasource (FILE fn_err_conf_e15_t5_l150_k9_21.tsv
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/fn_err_conf_e15_t5_l150_k9_21.tsv
                 URL_HASH SHA256=b40dc2b5049a4ac9fc02593a62efb6b7d68e02f7793901eac63dc9be59cd3579)
-declare_datasource (FILE meta.bin
-                URL ${CMAKE_SOURCE_DIR}/test/data/build/meta.bin
-                URL_HASH SHA256=303da9e67ae926a711e1ff86950f63aac5e5a57db7d4cb103a2163240f26de08)
-declare_datasource (FILE single_seq_meta.bin
-                URL ${CMAKE_SOURCE_DIR}/test/data/build/single_seq_meta.bin
-                URL_HASH SHA256=79effa085c27989b16fbb555e0f6f95c76fcf880d855e819ebee1b7a4d6917cd)
 
 
 declare_datasource (FILE 8bins19window0error100pattern1overlap.gff.out
@@ -248,12 +239,6 @@ declare_datasource (FILE query_meta.bin
 declare_datasource (FILE ref.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/ref.fasta
                 URL_HASH SHA256=47f808d207c4c90afebbe1c8ab28990ec0e3e777c75ec787099279005428f3da)
-declare_datasource (FILE seg_meta150overlap16bins.bin
-                URL ${CMAKE_SOURCE_DIR}/test/data/dream/seg_meta150overlap16bins.bin
-                URL_HASH SHA256=1425d9d43191764724fb88afc9273c89d7448efc949eb9ac022aaa570394d8d7)
-declare_datasource (FILE seg_meta150overlap4bins.bin
-                URL ${CMAKE_SOURCE_DIR}/test/data/dream/seg_meta150overlap4bins.bin
-                URL_HASH SHA256=c1b2ed0f9be39b2e4063a134b52a10f24d752d5992baa842d599faa307055133)
 declare_datasource (FILE stellar.gff
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/stellar.gff
                 URL_HASH SHA256=01993f28b0973e612a7cc3e84abdbe551c9b47a6cc7507106ff4b48071c21613)

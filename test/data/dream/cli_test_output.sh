@@ -25,8 +25,6 @@ pat_overlap=49        # how much adjacent patterns overlap
 ref_input="ref.fasta"
 query="query.fasta"
 
-valik split "$query" --pattern 50 --seg-count 60 --out query_meta.bin --without-parameter-tuning
-
 e=1
 er=$(echo $e/$pattern | bc -l)
 for b in 4 16
@@ -52,6 +50,7 @@ do
         rm $VALIK_TMP/*
 	rm $index
 	done
+    rm "$seg_meta"
 done
 
 stellar_out="stellar.gff"
