@@ -45,7 +45,7 @@ do
     echo "Splitting the genome into $b segments that overlap by $seg_overlap"
     seg_meta="single/"$seg_overlap"overlap"$b"bins.bin"
 
-    valik split "$ref_input" --pattern "$seg_overlap" --seg-count "$b" --out "$seg_meta" --without-parameter-tuning
+    valik split "$ref_input" --pattern "$seg_overlap" --seg-count "$b" --out "$seg_meta" --split-index
 
     for w in 13 15
     do

@@ -10,15 +10,27 @@ namespace valik::app
  */
 void valik_split(split_arguments & arguments)
 {
-    if (arguments.split_index)
+    if (arguments.only_split)
+    {
+        // use user parameter input
+        arguments.seg_count = arguments.seg_count_in;
+    }
+    else if (arguments.split_index)
+    {
+        // bin count is multiple of 64
         arguments.seg_count = adjust_bin_count(arguments.seg_count_in);
+    }
     else
     {
-        std::filesystem::path kmer_thresh_file{arguments.meta_out};
+        std::filesystem::path kmer_thresh_file{arguments.ref_meta_path};
         kmer_thresh_file.replace_extension("arg");
+        sharg::input_file_validator argument_input_validator{{"arg"}};
+        argument_input_validator(kmer_thresh_file);
         kmer_thresholds kmer_thresh{kmer_thresh_file};
-        std::cout << "Max errors\t" << std::to_string(kmer_thresh.max_errors) << '\n';   
-        arguments.seg_count = arguments.seg_count_in;
+        if (arguments.verbose)
+            std::cout << "Max errors\t" << std::to_string(kmer_thresh.max_errors) << '\n';
+        arguments.max_segment_len= kmer_thresh.error_table[arguments.errors].max_segment_len;
+        // seg_count is inferred in metagenome constructor
     }
 
     metadata meta(arguments);
@@ -48,9 +60,9 @@ void valik_split(split_arguments & arguments)
                 std::cout << "db length " << meta.total_len << "bp\n";
                 kmer_thresh.print();
             }
-            std::filesystem::path kmer_thresh_out{arguments.meta_out};
-            kmer_thresh_out.replace_extension("arg");
-            kmer_thresh.save(kmer_thresh_out);
+            std::filesystem::path kmer_thresh_file{arguments.meta_out};
+            kmer_thresh_file.replace_extension("arg");
+            kmer_thresh.save(kmer_thresh_file);
         }
         else
         {

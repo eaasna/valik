@@ -139,15 +139,18 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         "--out", ref_meta_path,
                                                         "--seg-count ", std::to_string(number_of_bins),
                                                         "--pattern 150", 
+                                                        "--split-index",
                                                         "--without-parameter-tuning");
     EXPECT_EQ(split_ref.exit_code, 0);
+    EXPECT_EQ(split_ref.err, std::string{});
 
     cli_test_result const split_query = execute_app("valik", "split",
                                                         data("query.fasta"),
                                                         "--out", query_meta_path,
                                                         "--seg-count ", std::to_string(query_seg_count),
                                                         "--ref-meta", ref_meta_path,
-                                                        "--pattern 0");
+                                                        "--pattern 0", 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(split_query.exit_code, 0);
     valik::metadata reference(ref_meta_path);
 

@@ -404,7 +404,7 @@ struct metadata
         /**
          * @brief Constructor that scans a sequence database to create a metadata struct.
         */
-        metadata(split_arguments const & arguments)
+        metadata(split_arguments & arguments)
         {
             if (arguments.metagenome)
             {
@@ -413,6 +413,12 @@ struct metadata
             else
             {
                 scan_database_file(arguments.bin_path);
+                if (!arguments.split_index && (arguments.seg_count_in == std::numeric_limits<uint32_t>::max()))
+                {
+                    arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+                    if (arguments.verbose)
+                        std::cout << "segment count " << arguments.seg_count << '\n';
+                } 
                 scan_database_sequences(arguments);
             }
 
@@ -599,10 +605,10 @@ struct metadata
         */
         uint64_t max_segment_len(param_set const & params) const
         {
-            double pattern_p = pattern_spurious_match_prob(params);
-            if (pattern_p < 9e-6) // avoid very small floating point numbers
-                return 100000;
-            size_t max_patterns_per_segment = std::round(1.0 / pattern_p) - 1;
+            double fp_per_pattern = pattern_spurious_match_prob(params);
+            if (fp_per_pattern < 9e-6) // avoid very small floating point numbers
+                return 1e5;
+            size_t max_patterns_per_segment = std::round(1.0 / fp_per_pattern * 0.1);    // allow 0.1 FPR
             return pattern_size + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
         }
 };

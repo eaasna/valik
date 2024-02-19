@@ -113,7 +113,7 @@ struct kmer_thresholds
 
         std::cout.precision(3);
         std::cout << "Recommended shared " << std::to_string(k) << "-mer thresholds for different error rates\n";
-        std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\tmax_query_seg_len\n";
+        std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\n";
 
         for (uint8_t er{1}; er <= max_errors; er++)
         {

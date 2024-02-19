@@ -27,8 +27,9 @@ constexpr static uint64_t adjust_seed(uint8_t const kmer_size, uint64_t const se
  */
 constexpr static size_t adjust_bin_count(size_t const & n)
 {
+    if (n == std::numeric_limits<uint32_t>::max())
+        return 64u;
     int remainder = n % 64;
-
     if (remainder == 0)
         return n;
     else if (remainder < 32)
@@ -61,7 +62,8 @@ struct split_arguments
 
     size_t pattern_size{150};
     uint32_t seg_count{64};
-    uint32_t seg_count_in{64};
+    uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
+    uint64_t max_segment_len{(uint64_t) 1e5};
     bool split_index{false};
     float error_rate{0.05};
     uint8_t errors{0};
