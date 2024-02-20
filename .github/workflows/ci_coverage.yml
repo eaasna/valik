@@ -138,7 +138,6 @@ jobs:
           gcovr --gcov-executable ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/gcov.sh \
                 --root ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/test/coverage \
                 ${{ github.workspace }}/build \
-                --filter ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/include \
                 --filter ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/src \
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
