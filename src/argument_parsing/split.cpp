@@ -84,6 +84,7 @@ void run_split(sharg::parser & parser)
 
     if (arguments.metagenome)
     {
+        arguments.split_index = true;
         std::ifstream istrm{arguments.db_file};
         std::string line;
         while (std::getline(istrm, line))
@@ -116,11 +117,11 @@ void run_split(sharg::parser & parser)
         arguments.meta_out.replace_extension("bin");
     }
 
-    if (arguments.metagenome)
-        arguments.split_index = true;
-
     if (!arguments.split_index && !arguments.only_split && !parser.is_option_set("ref-meta"))
-        throw sharg::parser_error{"Need to provide path to reference metadata to process a query database."};
+        throw sharg::parser_error{"Provide path to reference metadata to process a query database."};
+    
+    if (parser.is_option_set("kmer") && !arguments.only_split)
+        std::cerr << "WARNING: kmer size will be adjusted for database size. Set --without-parameter-tuning to force manual input.\n"; 
 
     // ==========================================
     // Dispatch

@@ -74,10 +74,18 @@ struct kmer_thresholds
         if (errors > max_errors)
             max_errors = errors;
         if (error_thresh.pattern.l != l)
-            throw std::runtime_error("Incompatible pattern lenght");
+            throw std::runtime_error("Incompatible pattern length");
         if (error_thresh.params.k != k)
             throw std::runtime_error("Incompatible kmer size");
         error_table.insert({errors, error_thresh});
+    }
+
+    error_threshold get_error_thresh(uint8_t const errors)
+    {
+        if (error_table.find(errors) == error_table.end())
+            throw std::runtime_error("Error count " + std::to_string(errors) + " out of precalculated range");
+
+        return error_table.at(errors);
     }
 
     /**
@@ -107,13 +115,9 @@ struct kmer_thresholds
 
     void print()
     {
-        std::cout << "min local match length " << l << "bp\n";
-        std::cout << "max error rate " << max_errors / (double) l << "\n";
-        std::cout << "kmer size " << std::to_string(k) << '\n';
-
         std::cout.precision(3);
-        std::cout << "Recommended shared " << std::to_string(k) << "-mer thresholds for different error rates\n";
-        std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\n";
+        std::cout << "\nRecommended shared " << std::to_string(k) << "-mer thresholds for different error rates\n";
+        std::cout << "error_rate\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\tmax_segment_len\n";
 
         for (uint8_t er{1}; er <= max_errors; er++)
         {

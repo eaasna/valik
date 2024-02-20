@@ -319,7 +319,7 @@ struct metadata
          * @param seq_it Iterator to first sequence of sufficient length.
          */
         template <typename it_t>
-        void make_equal_length_segments(size_t const & seg_count_in, size_t const & overlap, it_t & seq_it)
+        void make_equal_length_segments(size_t const & seg_count_in, size_t const & overlap, it_t & seq_it, bool const only_split)
         {
             for (auto it = seq_it; it != sequences.end(); it++)
             {
@@ -352,7 +352,7 @@ struct metadata
                 }
             }
 
-            if (segments.size() != seg_count_in)
+            if (only_split && (segments.size() != seg_count_in))
                 seqan3::debug_stream << "WARNING: Database was split into " << segments.size() << " instead of " << seg_count_in << " segments.\n";
 
         }
@@ -392,7 +392,7 @@ struct metadata
             if (arguments.split_index)
                 make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
             else
-                make_equal_length_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
+                make_equal_length_segments(arguments.seg_count, arguments.pattern_size, first_long_seq, arguments.only_split);
 
             std::stable_sort(sequences.begin(), sequences.end(), fasta_order());
             std::stable_sort(segments.begin(), segments.end(), fasta_order());
@@ -414,11 +414,7 @@ struct metadata
             {
                 scan_database_file(arguments.bin_path);
                 if (!arguments.split_index && (arguments.seg_count_in == std::numeric_limits<uint32_t>::max()))
-                {
                     arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
-                    if (arguments.verbose)
-                        std::cout << "segment count " << arguments.seg_count << '\n';
-                } 
                 scan_database_sequences(arguments);
             }
 

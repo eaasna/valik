@@ -32,6 +32,14 @@ struct search_pattern
         return combinations(e, l);
     }
 
+    bool operator==(search_pattern const & other)
+    {
+        if ((e == other.e) && (l == other.l))
+            return true;
+        else
+            return false;
+    }
+
     template <class Archive>
     void serialize(Archive & archive)
     {
