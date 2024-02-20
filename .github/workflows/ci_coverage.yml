@@ -143,6 +143,7 @@ jobs:
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
                 --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
+                --exclude-unreachable-branches \
                 --exclude-throw-branches \
                 -j 2 \
                 --xml \
@@ -151,6 +152,7 @@ jobs:
       - name: Submit coverage report
         uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ github.workspace }}/build/coverage_report.xml
           root_dir: ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}
 
