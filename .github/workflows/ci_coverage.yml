@@ -1,4 +1,4 @@
-name: CI on Linux
+name: Coverage
 
 on:
   push:
@@ -143,7 +143,6 @@ jobs:
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
                 --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
-                --exclude-unreachable-branches \
                 --exclude-throw-branches \
                 -j 2 \
                 --xml \
