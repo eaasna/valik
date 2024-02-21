@@ -77,7 +77,8 @@ TEST_P(valik_split_ref, split_ref)
                                                         "--split-index",
                                                         "--out ", ref_meta_path,
                                                         "--seg-count ", std::to_string(seg_count), // adjusted in parameter tuning
-                                                        "--pattern ", std::to_string(overlap)); 
+                                                        "--pattern ", std::to_string(overlap), 
+                                                        "--error-rate 0.01"); 
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});

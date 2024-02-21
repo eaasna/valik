@@ -121,7 +121,16 @@ void run_split(sharg::parser & parser)
         throw sharg::parser_error{"Provide path to reference metadata to process a query database."};
     
     if (parser.is_option_set("kmer") && !arguments.only_split)
-        std::cerr << "WARNING: kmer size will be adjusted for database size. Set --without-parameter-tuning to force manual input.\n"; 
+    {
+        std::cerr << "WARNING: kmer size will be adjusted for database size. "
+                  << "Set --without-parameter-tuning to force manual input.\n";
+    }
+
+    if (parser.is_option_set("pattern") && !arguments.only_split && !arguments.split_index)
+    {
+        std::cerr << "WARNING: pattern size (minimum match length) will be adjusted to match database metadata. "
+                  << "Set --without-parameter-tuning to force manual input.\n"; 
+    }
 
     // ==========================================
     // Dispatch

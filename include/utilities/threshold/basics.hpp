@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include <filesystem>
+#include <map>
 
 namespace valik
 {
@@ -105,6 +106,8 @@ inline uint64_t combinations(size_t const k, size_t const n)
     else
         return 0;
 }
+
+enum search_kind {LEMMA, HEURISTIC, STELLAR};
 
 }   //namespace valik
 

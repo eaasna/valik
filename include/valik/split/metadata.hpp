@@ -5,6 +5,8 @@
 #include <seqan3/io/sequence_file/all.hpp>
 
 #include <utilities/threshold/param_set.hpp>
+#include <utilities/threshold/search_pattern.hpp>
+#include <utilities/threshold/basics.hpp>
 #include <valik/shared.hpp>
 
 #include <algorithm>

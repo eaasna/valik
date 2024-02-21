@@ -12,7 +12,7 @@ namespace valik
  * @param k Chosen k-mer size.
  * @param fn_conf_counts Number of configurations of e errors that do not retain at least t shared kmers after mutation.
 */
-struct kmer_attributes
+struct kmer_loss
 {
     using row_t = std::vector<uint64_t>;
     using table_t = std::vector<row_t>;
@@ -61,11 +61,11 @@ struct kmer_attributes
         return matrix;
     }
 
-    kmer_attributes(uint8_t const kmer_size) : 
+    kmer_loss(uint8_t const kmer_size) : 
                     k(kmer_size), 
                     fn_conf_counts(count_err_conf_below_thresh()) { }
 
-    kmer_attributes(uint8_t const kmer_size, mat_t const & matrix) : k(kmer_size), fn_conf_counts(matrix) { }
+    kmer_loss(uint8_t const kmer_size, mat_t const & matrix) : k(kmer_size), fn_conf_counts(matrix) { }
 
     /**
      * @brief False negative rate for a parameter set.

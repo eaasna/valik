@@ -16,13 +16,13 @@ std::filesystem::path fn_filename()
 /**
  * @brief Precalculate and write out FN configuration count tables.
 */
-void precalc_fn_confs(std::vector<kmer_attributes> & attr_vec)
+void precalc_fn_confs(std::vector<kmer_loss> & attr_vec)
 {
     auto space = param_space();
     auto outfile = fn_filename();
     for (auto k = std::get<0>(space.kmer_range); k <= std::get<1>(space.kmer_range); k++)
     {
-        kmer_attributes attr(k);
+        kmer_loss attr(k);
         attr_vec.push_back(attr);
         std::ofstream outstr;
         outstr.open(outfile, std::ios_base::app);
@@ -31,9 +31,9 @@ void precalc_fn_confs(std::vector<kmer_attributes> & attr_vec)
 }
 
 /**
- * @brief Deserialize kmer_attributes for a single k-mer size.
+ * @brief Deserialize kmer_loss for a single k-mer size.
 */
-kmer_attributes deserialize_kmer_attributes(std::string const & kmer_attr_str)
+kmer_loss deserialize_kmer_loss(std::string const & kmer_attr_str)
 {
     std::istringstream matrix_str(kmer_attr_str);
     std::string line;
@@ -92,13 +92,13 @@ kmer_attributes deserialize_kmer_attributes(std::string const & kmer_attr_str)
     }
     
     matrix.push_back(table);
-    return kmer_attributes(k, matrix);
+    return kmer_loss(k, matrix);
 }
 
 /**
  * @brief Read precalculated FN error configuration count tables across all k-mer sizes. 
 */
-bool read_fn_confs(std::vector<kmer_attributes> & attr_vec)
+bool read_fn_confs(std::vector<kmer_loss> & attr_vec)
 {
     auto infile = fn_filename();
     if (!std::filesystem::exists(infile))
@@ -114,7 +114,7 @@ bool read_fn_confs(std::vector<kmer_attributes> & attr_vec)
         {
             if (past_first)
             {
-                attr_vec.push_back(deserialize_kmer_attributes(kmer_attr_str));
+                attr_vec.push_back(deserialize_kmer_loss(kmer_attr_str));
                 kmer_attr_str.clear();
             }
             past_first = true;
@@ -122,7 +122,7 @@ bool read_fn_confs(std::vector<kmer_attributes> & attr_vec)
         kmer_attr_str += line + '\n';
     }
 
-    attr_vec.push_back(deserialize_kmer_attributes(kmer_attr_str));
+    attr_vec.push_back(deserialize_kmer_loss(kmer_attr_str));
     return true;
 }
 

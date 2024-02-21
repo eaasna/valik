@@ -53,7 +53,7 @@ struct filtering_request
     /**
     * @brief For a chosen kmer size and error rate find the best heuristic threshold. 
     */
-    uint8_t find_heuristic_threshold(kmer_attributes const attr) const
+    uint8_t find_heuristic_threshold(kmer_loss const attr) const
     {
         param_space space;
         auto best_thresh = space.max_thresh;

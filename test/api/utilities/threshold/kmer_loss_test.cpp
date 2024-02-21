@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include <utilities/threshold/kmer_attributes.hpp>
+#include <utilities/threshold/kmer_loss.hpp>
 #include <utilities/threshold/io.hpp>
 #include <utilities/threshold/search_pattern.hpp>
 #include <utilities/threshold/param_set.hpp>
@@ -16,13 +16,13 @@ std::filesystem::path data_path(std::string const & filename)
     return std::filesystem::path{std::string{DATADIR}}.concat(filename);
 }
 
-TEST(kmer_attributes, equal_after_serialization)
+TEST(kmer_loss, equal_after_serialization)
 {
     std::filesystem::remove(valik::fn_filename());
-    std::vector<valik::kmer_attributes> precalc_attr_vec;
+    std::vector<valik::kmer_loss> precalc_attr_vec;
     valik::precalc_fn_confs(precalc_attr_vec);
 
-    std::vector<valik::kmer_attributes> deserialized_attr_vec;
+    std::vector<valik::kmer_loss> deserialized_attr_vec;
     valik::read_fn_confs(deserialized_attr_vec);
     EXPECT_EQ(precalc_attr_vec.size(), deserialized_attr_vec.size());
     for (size_t i{0}; i < precalc_attr_vec.size(); i++)
@@ -40,11 +40,11 @@ TEST(kmer_attributes, equal_after_serialization)
     }
 }
 
-TEST(kmer_attributes, basic_checks)
+TEST(kmer_loss, basic_checks)
 {
     valik::param_space space;
 
-    std::vector<valik::kmer_attributes> attr_vec;
+    std::vector<valik::kmer_loss> attr_vec;
     if (!valik::read_fn_confs(attr_vec))
         valik::precalc_fn_confs(attr_vec);
 
@@ -66,7 +66,7 @@ TEST(kmer_attributes, basic_checks)
 
 // Test: case where there are no shared k-mers because the sequence length is less than the k-mer length
 //       the conf count is equal to (l take e) because all possible error configuration destroy all shared k-mers
-static void check_len_less_than_kmer_size(valik::kmer_attributes const & attr)
+static void check_len_less_than_kmer_size(valik::kmer_loss const & attr)
 {
     for (uint8_t t{1}; t <= attr.fn_conf_counts.size(); t++)
     {
@@ -91,7 +91,7 @@ static void check_len_less_than_kmer_size(valik::kmer_attributes const & attr)
 
 // Test: case where the thresh parameter is less or equal to the k-mer lemma threshold
 //       the conf count is 0 because no error configuration destroys more than the allowed number of k-mers
-static void check_thresh_from_kmer_lemma(valik::kmer_attributes const & attr)
+static void check_thresh_from_kmer_lemma(valik::kmer_loss const & attr)
 {
     for (uint8_t t{1}; t <= attr.fn_conf_counts.size(); t++)
     {
@@ -117,9 +117,9 @@ static void check_thresh_from_kmer_lemma(valik::kmer_attributes const & attr)
     }
 }
 
-TEST(kmer_attributes, edge_cases)
+TEST(kmer_loss, edge_cases)
 {
-    std::vector<valik::kmer_attributes> attr_vec;
+    std::vector<valik::kmer_loss> attr_vec;
     if (!valik::read_fn_confs(attr_vec))
         valik::precalc_fn_confs(attr_vec);
 
@@ -134,9 +134,9 @@ TEST(kmer_attributes, edge_cases)
     Let f(k, t, e, l) be the number of error configurations that destroy more than t k-mers. 
     The number of error configurations can be calculated in two ways.
 */
-TEST(kmer_attributes, exhaustive_comparison)
+TEST(kmer_loss, exhaustive_comparison)
 {
-    std::vector<valik::kmer_attributes> attr_vec;
+    std::vector<valik::kmer_loss> attr_vec;
     if (!valik::read_fn_confs(attr_vec))
         valik::precalc_fn_confs(attr_vec);
 
@@ -175,7 +175,7 @@ void try_fnr(uint8_t e, size_t l, uint8_t k, uint8_t t, double expected_fnr)
     valik::search_pattern pattern(e, l);
     valik::param_set param(k, t, space);
 
-    std::vector<valik::kmer_attributes> attr_vec;
+    std::vector<valik::kmer_loss> attr_vec;
     if (!valik::read_fn_confs(attr_vec))
         valik::precalc_fn_confs(attr_vec);
 
