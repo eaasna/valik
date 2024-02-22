@@ -49,7 +49,8 @@ TEST_P(dream_short_search, short_shared_mem)
                                                         "--ref-meta", ref_meta_path, 
                                                         "--repeatPeriod 1",
                                                         "--repeatLength 10", 
-                                                        "--numMatches 2");
+                                                        "--numMatches 2", 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
     EXPECT_EQ(result.err, std::string{});
@@ -105,7 +106,8 @@ TEST_F(dream_short_search, no_matches)
                                                         "--error-rate 0",
                                                         "--index ", ibf_path(number_of_bins, window_size),
                                                         "--query ", data("dummy_reads.fastq"),
-                                                        "--ref-meta", ref_meta_path);
+                                                        "--ref-meta", ref_meta_path, 
+                                                        "--without-parameter-tuning");
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
@@ -138,20 +140,10 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         data("ref.fasta"),
                                                         "--out", ref_meta_path,
                                                         "--seg-count ", std::to_string(number_of_bins),
-                                                        "--pattern 150", 
-                                                        "--split-index",
+                                                        "--pattern 150",
                                                         "--without-parameter-tuning");
     EXPECT_EQ(split_ref.exit_code, 0);
     EXPECT_EQ(split_ref.err, std::string{});
-
-    cli_test_result const split_query = execute_app("valik", "split",
-                                                        data("query.fasta"),
-                                                        "--out", query_meta_path,
-                                                        "--seg-count ", std::to_string(query_seg_count),
-                                                        "--ref-meta", ref_meta_path,
-                                                        "--pattern 0", 
-                                                        "--without-parameter-tuning");
-    EXPECT_EQ(split_query.exit_code, 0);
     valik::metadata reference(ref_meta_path);
 
     cli_test_result const build = execute_app("valik", "build",
@@ -170,10 +162,10 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         "--index ", index_path,
                                                         "--query ", data("query.fasta"),
                                                         "--ref-meta", ref_meta_path,
-                                                        "--query-meta", query_meta_path, 
                                                         "--repeatPeriod 1",
                                                         "--repeatLength 10", 
-                                                        "--numMatches 2");
+                                                        "--numMatches 2", 
+                                                        "--without-parameter-tuning");
 
     EXPECT_EQ(search.exit_code, 0);
     EXPECT_EQ(search.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});

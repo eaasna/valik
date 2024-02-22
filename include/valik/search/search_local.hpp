@@ -31,7 +31,7 @@ namespace valik::app
  * @return false if search failed.
  */
 template <bool compressed, bool is_split>
-bool search_local(search_arguments const & arguments, search_time_statistics & time_statistics)
+bool search_local(search_arguments & arguments, search_time_statistics & time_statistics)
 {
     using index_structure_t = std::conditional_t<compressed, index_structure::ibf_compressed, index_structure::ibf>;
     auto index = valik_index<index_structure_t>{};
@@ -47,8 +47,55 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
     env_var_pack var_pack{};
 
     std::optional<metadata> query_meta;
-    if (!arguments.query_meta_path.empty())
-        query_meta = metadata(arguments.query_meta_path);
+    if (arguments.split_query)
+    {
+        query_meta = metadata(arguments);    
+        if (arguments.verbose)
+        {
+            std::cout << "\n-----------Preprocessing queries-----------\n";
+            std::cout << "database size " << query_meta.value().total_len << "bp\n";
+            std::cout << "segment count " << query_meta.value().seg_count << '\n';
+            std::cout << "segment len " << std::to_string((uint64_t) std::round(query_meta.value().total_len / 
+                                                         (double) query_meta.value().seg_count)) << "bp\n";
+        }
+
+        //!TODO: search profile is processed twice
+        // 1. extract parameters pattern_size, max_segment_len, (<- needed before query split) and threshold
+        // 2. access FNR after metadata
+        std::filesystem::path search_profile_file{arguments.ref_meta_path};
+        search_profile_file.replace_extension("arg");
+        search_kmer_profile search_profile{search_profile_file};
+        search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
+
+        search_pattern pattern(arguments.errors, arguments.pattern_size);
+        param_space space;
+        param_set params(arguments.shape_size, arguments.threshold, space);
+        filtering_request request(pattern, ref_meta, query_meta.value());
+        if (request.fpr(params) > 0.2)
+            std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
+
+        if (arguments.verbose)
+        {
+            std::cout.precision(3);
+            std::cout << "\n-----------Search parameters-----------\n";
+            std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
+
+            switch (arguments.search_type)
+            {
+                case HEURISTIC: std::cout << "heuristic "; break;
+                case LEMMA: std::cout << "k-mer lemma "; break;
+                case STELLAR: throw std::runtime_error("Can not prefilter matches of length " + std::to_string(arguments.pattern_size) + 
+                                                       " with " + std::to_string(arguments.errors) + " errors.");
+                //!TODO: run stellar without prefiltering    
+            }
+                
+            std::cout << "threshold ";
+            std::cout << std::to_string(arguments.threshold) << '\n';
+
+            std::cout << "FNR " << arguments.fnr << '\n';
+            std::cout << "FPR " << request.fpr(params) << '\n';
+        }
+    }
 
     using TAlphabet = seqan2::Dna;
     using TSequence = seqan2::String<TAlphabet>;
@@ -325,7 +372,7 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
     if constexpr (is_split)
     {
         raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
-        iterate_split_queries(arguments, index.ibf(), thresholder, queue, *query_meta);
+        iterate_split_queries(arguments, index.ibf(), thresholder, queue, query_meta.value());
     }
     else
     {

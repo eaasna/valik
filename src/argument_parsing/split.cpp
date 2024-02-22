@@ -37,10 +37,6 @@ void init_split_parser(sharg::parser & parser, split_arguments & arguments)
                       .long_id = "seg-count",
                       .description = "The suggested number of database segments that might be adjusted by the split algorithm.",
                       .validator = positive_integer_validator{false}});
-    parser.add_flag(arguments.split_index,
-                      sharg::config{.short_id = '\0',
-                      .long_id = "split-index",
-                      .description = "Adjust the suggested segment count to create a multiple of 64 segments instead. This is suitable for building an IBF."});
     parser.add_flag(arguments.metagenome,
                       sharg::config{.short_id = '\0',
                       .long_id = "metagenome",
@@ -84,7 +80,6 @@ void run_split(sharg::parser & parser)
 
     if (arguments.metagenome)
     {
-        arguments.split_index = true;
         std::ifstream istrm{arguments.db_file};
         std::string line;
         while (std::getline(istrm, line))
@@ -117,19 +112,10 @@ void run_split(sharg::parser & parser)
         arguments.meta_out.replace_extension("bin");
     }
 
-    if (!arguments.split_index && !arguments.only_split && !parser.is_option_set("ref-meta"))
-        throw sharg::parser_error{"Provide path to reference metadata to process a query database."};
-    
     if (parser.is_option_set("kmer") && !arguments.only_split)
     {
         std::cerr << "WARNING: kmer size will be adjusted for database size. "
                   << "Set --without-parameter-tuning to force manual input.\n";
-    }
-
-    if (parser.is_option_set("pattern") && !arguments.only_split && !arguments.split_index)
-    {
-        std::cerr << "WARNING: pattern size (minimum match length) will be adjusted to match database metadata. "
-                  << "Set --without-parameter-tuning to force manual input.\n"; 
     }
 
     // ==========================================

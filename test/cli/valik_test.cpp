@@ -35,7 +35,6 @@ TEST_F(valik_split_clusters, split_metagenome_clusters)
 
     cli_test_result const result_one_per_bin = execute_app("valik", "split",
                                                                     "--metagenome",
-                                                                    "--split-index",
                                                                     "--out single_seq_meta.bin",
                                                                     "single_seq_bin_paths.txt");
     EXPECT_EQ(result_one_per_bin.exit_code, 0);
@@ -48,7 +47,6 @@ TEST_F(valik_split_clusters, split_metagenome_clusters)
 
     cli_test_result const result_two_per_bin = execute_app("valik", "split",
                                                                     "--metagenome",
-                                                                    "--split-index",
                                                                     "--out multi_seq_meta.bin",
                                                                     "multi_seq_bin_paths.txt");
     EXPECT_EQ(result_two_per_bin.exit_code, 0);
@@ -74,7 +72,6 @@ TEST_P(valik_split_ref, split_ref)
     std::string ref_meta_path{"ref_meta.bin"};
     cli_test_result const result = execute_app("valik", "split",
                                                         data("ref.fasta"),
-                                                        "--split-index",
                                                         "--out ", ref_meta_path,
                                                         "--seg-count ", std::to_string(seg_count), // adjusted in parameter tuning
                                                         "--pattern ", std::to_string(overlap), 
@@ -400,7 +397,8 @@ TEST_P(valik_search_clusters, search)
                                                         "--query ", data("query.fq"),
                                                         "--threads 1",
                                                         "--tau 0.75",
-                                                        "--p_max 0.75");
+                                                        "--p_max 0.75", 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
@@ -451,7 +449,8 @@ TEST_P(valik_search_segments, search)
                                                         "--tau 0.75",
                                                         "--threads 1",
                                                         "--ref-meta", segment_metadata_path(segment_overlap, number_of_bins),
-                                                        "--p_max 0.25");
+                                                        "--p_max 0.25", 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});

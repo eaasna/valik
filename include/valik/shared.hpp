@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <vector>
 
+#include <utilities/threshold/basics.hpp>
+
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/search/kmer_index/shape.hpp>
@@ -63,8 +65,6 @@ struct split_arguments
     size_t pattern_size{150};
     uint32_t seg_count{64};
     uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
-    uint64_t max_segment_len{(uint64_t) 1e5};
-    bool split_index{false};
     float error_rate{0.05};
     uint8_t errors{0};
     uint8_t kmer_size{20};
@@ -135,6 +135,9 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     uint8_t shape_weight{shape.count()};
     uint64_t overlap{};
     size_t threshold{};
+    uint32_t seg_count{64};
+    uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
+    uint64_t max_segment_len{(uint64_t) 1e5};
 
     uint8_t threads{1u};
 
@@ -144,6 +147,8 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     std::filesystem::path all_matches{};
     std::filesystem::path out_file{"search.gff"};
 
+    bool split_query{false}; //!TODO: deduce this automatically
+    bool manual_parameters{false};
     bool compressed{false};
     bool write_time{false};
     bool fast{false};
@@ -170,8 +175,10 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     }
 
     float error_rate{};
+    //!TODO: make fourth option: MINIMISER
+    search_kind search_type{LEMMA}; 
+    double fnr;
     std::filesystem::path ref_meta_path{};
-    std::filesystem::path query_meta_path{};
     bool distribute{false};
 };
 

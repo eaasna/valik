@@ -30,9 +30,8 @@ void runtime_to_compile_time(func_t const & func, bool b1, bs_t... bs)
  * @tparam compressed Interleaved Bloom Filter layout type.
  * @param arguments Command line arguments.
  */
-void valik_search(search_arguments const & arguments)
+void valik_search(search_arguments & arguments)
 {
-
     search_time_statistics time_statistics{};
 
     bool failed;
@@ -49,7 +48,7 @@ void valik_search(search_arguments const & arguments)
         runtime_to_compile_time([&]<bool is_compressed, bool is_split>()
         {
             failed = search_local<is_compressed, is_split>(arguments, time_statistics);
-        }, arguments.compressed, !arguments.query_meta_path.empty());
+        }, arguments.compressed, arguments.split_query);
     }
 
     // Consolidate matches (not necessary when searching a metagenomic database)

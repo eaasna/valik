@@ -111,7 +111,7 @@ struct search_kmer_profile
         error_table.insert({errors, error_thresh});
     }
 
-    search_error_profile get_error_thresh(uint8_t const errors)
+    search_error_profile get_error_profile(uint8_t const errors)
     {
         if (error_table.find(errors) == error_table.end())
             throw std::runtime_error("Error count " + std::to_string(errors) + " out of precalculated range");

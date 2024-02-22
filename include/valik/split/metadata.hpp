@@ -197,11 +197,11 @@ struct metadata
          *
          * @param db_path Path to input file.
          */
-        void scan_database_file(std::vector<std::vector<std::string>> const & bin_path)
+        void scan_database_file(std::string const & db_file)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
-            files.emplace_back(0, bin_path[0][0]);
-            seqan3::sequence_file_input<traits_type> fin{bin_path[0][0]};   // single input file
+            files.emplace_back(0, db_file);
+            seqan3::sequence_file_input<traits_type> fin{db_file};   // single input file
             size_t fasta_ind = sequences.size();
             for (auto & record : fin)
             {
@@ -316,12 +316,11 @@ struct metadata
         /**
          * @brief Function that splits the database into partially overlapping segments of roughly equal length.
          *
-         * @param seg_count_in Suggested number of segments.
          * @param overlap Length of overlap between adjacent segments.
          * @param seq_it Iterator to first sequence of sufficient length.
          */
         template <typename it_t>
-        void make_equal_length_segments(size_t const & seg_count_in, size_t const & overlap, it_t & seq_it, bool const only_split)
+        void make_equal_length_segments(size_t const & overlap, it_t & seq_it)
         {
             for (auto it = seq_it; it != sequences.end(); it++)
             {
@@ -353,10 +352,6 @@ struct metadata
                     }
                 }
             }
-
-            if (only_split && (segments.size() != seg_count_in))
-                seqan3::debug_stream << "WARNING: Database was split into " << segments.size() << " instead of " << seg_count_in << " segments.\n";
-
         }
 
         /**
@@ -366,7 +361,8 @@ struct metadata
          * @param n Actual number of segments.
          * @param overlap Length of overlap between adjacent segments.
          */
-        void scan_database_sequences(split_arguments const & arguments)
+        template <typename arg_t>
+        void scan_database_sequences(arg_t const & arguments)
         {
             default_seg_len = total_len / arguments.seg_count + 1;
             if (default_seg_len <= arguments.pattern_size)
@@ -391,10 +387,10 @@ struct metadata
                                          " sequences into " + std::to_string(arguments.seg_count) + " segments.");
             }
 
-            if (arguments.split_index)
+            if constexpr (std::is_same<arg_t, split_arguments>::value)
                 make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
             else
-                make_equal_length_segments(arguments.seg_count, arguments.pattern_size, first_long_seq, arguments.only_split);
+                make_equal_length_segments(arguments.pattern_size, first_long_seq);
 
             std::stable_sort(sequences.begin(), sequences.end(), fasta_order());
             std::stable_sort(segments.begin(), segments.end(), fasta_order());
@@ -406,7 +402,7 @@ struct metadata
         /**
          * @brief Constructor that scans a sequence database to create a metadata struct.
         */
-        metadata(split_arguments & arguments)
+        metadata(split_arguments const & arguments)
         {
             if (arguments.metagenome)
             {
@@ -414,11 +410,23 @@ struct metadata
             }
             else
             {
-                scan_database_file(arguments.bin_path);
-                if (!arguments.split_index && (arguments.seg_count_in == std::numeric_limits<uint32_t>::max()))
-                    arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+                scan_database_file(arguments.bin_path[0][0]);
                 scan_database_sequences(arguments);
             }
+
+            seq_count = sequences.size();
+            seg_count = segments.size();
+            pattern_size = arguments.pattern_size;
+        }
+
+        metadata(search_arguments & arguments)
+        {
+            scan_database_file(arguments.query_file);
+            if (!arguments.manual_parameters && (arguments.seg_count_in == std::numeric_limits<uint32_t>::max()))
+                arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+            scan_database_sequences(arguments);
+            if (arguments.manual_parameters && (segments.size() != arguments.seg_count))
+                seqan3::debug_stream << "WARNING: Database was split into " << segments.size() << " instead of " << arguments.seg_count << " segments.\n";
 
             seq_count = sequences.size();
             seg_count = segments.size();

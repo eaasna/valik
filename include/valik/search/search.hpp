@@ -1,5 +1,9 @@
 #pragma once
 
+#include <utilities/threshold/basics.hpp>
+#include <utilities/threshold/filtering_request.hpp>
+#include <utilities/threshold/io.hpp>
+
 #include <valik/search/query_record.hpp>
 #include <valik/search/search_distributed.hpp>
 #include <valik/search/search_local.hpp>
@@ -11,6 +15,6 @@
 namespace valik::app
 {
 
-void valik_search(search_arguments const & arguments);
+void valik_search(search_arguments & arguments);
 
 } // namespace valik::app
