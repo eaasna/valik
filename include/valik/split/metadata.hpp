@@ -613,7 +613,7 @@ struct metadata
         {
             double fp_per_pattern = pattern_spurious_match_prob(params);
             if (fp_per_pattern < 9e-6) // avoid very small floating point numbers
-                return 1e5;
+                return 1e4;
             size_t max_patterns_per_segment = std::round(1.0 / fp_per_pattern * 0.1);    // allow 0.1 FPR
             return pattern_size + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
         }

@@ -65,6 +65,8 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
         std::filesystem::path search_profile_file{arguments.ref_meta_path};
         search_profile_file.replace_extension("arg");
         search_kmer_profile search_profile{search_profile_file};
+        if (arguments.verbose)
+            search_profile.print();
         search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
 
         search_pattern pattern(arguments.errors, arguments.pattern_size);

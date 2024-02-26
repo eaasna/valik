@@ -93,6 +93,7 @@ struct build_arguments
     uint64_t hash{2};
     bool compressed{false};
     bool fast{false};
+    bool manual_parameters{false};
 
     std::filesystem::path ref_meta_path{};
 };
@@ -121,7 +122,29 @@ struct minimiser_threshold_arguments
 
 inline minimiser_threshold_arguments::~minimiser_threshold_arguments() = default;
 
-struct search_arguments final : public minimiser_threshold_arguments, public stellar::StellarOptions
+struct search_profile_arguments
+{
+    virtual ~search_profile_arguments() = 0;   // make an abstract base struct
+
+    //!TODO: deduce this automatically
+    bool split_query{false}; 
+    bool manual_parameters{false};
+    //!TODO: make fourth option: MINIMISER
+    search_kind search_type{LEMMA}; 
+    double fnr;
+
+    protected:
+        // prevent creating, assigning or moving base struct instances
+        search_profile_arguments() = default;
+        search_profile_arguments(search_profile_arguments const&) = default;
+        search_profile_arguments(search_profile_arguments&&) = default;
+        search_profile_arguments& operator=(search_profile_arguments const&) = default;
+        search_profile_arguments& operator=(search_profile_arguments&&) = default;
+};
+
+inline search_profile_arguments::~search_profile_arguments() = default;
+
+struct search_arguments final : public minimiser_threshold_arguments, search_profile_arguments, public stellar::StellarOptions
 {
     ~search_arguments() override = default;
     search_arguments() = default;
@@ -148,8 +171,6 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     std::filesystem::path all_matches{};
     std::filesystem::path out_file{"search.gff"};
 
-    bool split_query{false}; //!TODO: deduce this automatically
-    bool manual_parameters{false};
     bool compressed{false};
     bool write_time{false};
     bool fast{false};
@@ -176,9 +197,6 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     }
 
     float error_rate{};
-    //!TODO: make fourth option: MINIMISER
-    search_kind search_type{LEMMA}; 
-    double fnr;
     std::filesystem::path ref_meta_path{};
     bool distribute{false};
 };

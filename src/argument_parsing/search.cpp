@@ -124,12 +124,12 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       .advanced = true});
     parser.add_option(arguments.cart_max_capacity,
                     sharg::config{.short_id = '\0',
-                    .long_id = "cart_max_capacity",
+                    .long_id = "cart-max-capacity",
                     .description = "Number of elements to be stored in a single cart before it is sent for processing.", 
                     .advanced = true});
     parser.add_option(arguments.max_queued_carts,
                     sharg::config{.short_id = '\0',
-                    .long_id = "max_queued_carts",
+                    .long_id = "max-queued-carts",
                     .description = "Maximal number of carts that are full and are waiting to be processed.",
                     .advanced = true});
     parser.add_option(arguments.disableThresh,
@@ -194,8 +194,11 @@ void run_search(sharg::parser & parser)
 
     try_parsing(parser);
 
-    if (parser.is_option_set("ref-meta"))
-        arguments.manual_parameters = true;
+    if (arguments.manual_parameters && !parser.is_option_set("ref-meta") && !arguments.distribute)
+    {
+        if (!parser.is_option_set("pattern") || !parser.is_option_set("seg-count"))
+            throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
+    }
 
     // ==========================================
     // Process --seg-count.
@@ -338,7 +341,6 @@ void run_search(sharg::parser & parser)
         if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
             throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
         arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
-        //!TODO: bundle search profile params into search_parameter substruct
         arguments.search_type = error_profile.search_type;
         arguments.fnr = error_profile.fnr;
     }
@@ -370,7 +372,6 @@ void run_search(sharg::parser & parser)
     // Dispatch
     // ==========================================
     valik_search(arguments);
-    //!TODO: make split arguments with split-query/split-ref switch 
 }
 
 } // namespace valik::app

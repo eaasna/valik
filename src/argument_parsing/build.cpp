@@ -37,7 +37,11 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
                       sharg::config{.short_id = '\0',
                       .long_id = "fast",
                       .description = "Build the index in fast mode when few false negatives can be tolerated in the following search."});
-    
+    parser.add_flag(arguments.manual_parameters,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "without-parameter-tuning",
+                      .description = "Do not read parameters from metadata.",
+                      .advanced = true});
     /////////////////////////////////////////
     // Advanced options
     /////////////////////////////////////////
@@ -67,11 +71,27 @@ void run_build(sharg::parser & parser)
     init_build_parser(parser, arguments);
     try_parsing(parser);
 
-    if (!parser.is_option_set("kmer") && !parser.is_option_set("window"))
+    if (!arguments.manual_parameters)
     {
-        //!TODO: read in parameter metadata file
-        arguments.kmer_size = 12;
-        arguments.window_size = 12;
+        std::filesystem::path search_profile_file{arguments.ref_meta_path};
+        search_profile_file.replace_extension("arg");
+        sharg::input_file_validator argument_input_validator{{"arg"}};
+        argument_input_validator(search_profile_file);
+        search_kmer_profile search_profile{search_profile_file};
+
+        if (parser.is_option_set("kmer"))
+        {
+            seqan3::debug_stream << "WARNING: kmer size k=" << arguments.kmer_size << " will be updated to " << search_profile.k 
+                                 << ". Set --without-parameter-tuning to force manual input.";
+        }
+        if (parser.is_option_set("window"))
+        {
+            seqan3::debug_stream << "WARNING: window size w=" << arguments.window_size << " will be updated. " 
+                                 << "Set --without-parameter-tuning to force manual input.";
+        }
+        
+        arguments.kmer_size = search_profile.k;
+        arguments.window_size = search_profile.k;
     }
 
     // ==========================================
