@@ -64,16 +64,16 @@ declare_datasource (FILE 20overlap4bins.bin
 
 declare_datasource (FILE write_out_20_16_reference_metadata.arg
                 URL ${CMAKE_SOURCE_DIR}/test/data/split/write_out_20_16/reference_metadata.arg
-                URL_HASH SHA256=ab79531d6161318131d1364921ce8caced5b47e541f9ae84d57e17a93c5a113a)
+                URL_HASH SHA256=111ebf21c6bfa60f37392d13f67e81580f6d40ae332e6ffd547b624cca797645)
 declare_datasource (FILE write_out_20_16_reference_metadata.bin
                 URL ${CMAKE_SOURCE_DIR}/test/data/split/write_out_20_16/reference_metadata.bin
-                URL_HASH SHA256=3207eca3909cd428655fa8dc46bf5b967bf7ca37f95f083d2354d0c56488e2a9)
+                URL_HASH SHA256=41a02debb90f108a779e42079a0637ac0c7aebea40766f98095b060ebe37a599)
 declare_datasource (FILE write_out_20_4_reference_metadata.arg
                 URL ${CMAKE_SOURCE_DIR}/test/data/split/write_out_20_4/reference_metadata.arg
-                URL_HASH SHA256=110bd30fb6ebaddc3916efb022caa49cf05f08bf024743c5caa51012d2b077c3)
+                URL_HASH SHA256=111ebf21c6bfa60f37392d13f67e81580f6d40ae332e6ffd547b624cca797645)
 declare_datasource (FILE write_out_20_4_reference_metadata.bin
                 URL ${CMAKE_SOURCE_DIR}/test/data/split/write_out_20_4/reference_metadata.bin
-                URL_HASH SHA256=ae0c1d858f6f698b0cc0bd9e2df1120994478ea88f4f432483180e1721965f4a)
+                URL_HASH SHA256=41a02debb90f108a779e42079a0637ac0c7aebea40766f98095b060ebe37a599)
 declare_datasource (FILE 8bins19window.ibf
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/8bins19window.ibf
                 URL_HASH SHA256=3a13c890650bf857770816244ed9420295ad8bbe681dac335f687863fc79a603)
@@ -106,59 +106,63 @@ declare_datasource (FILE bin_7.fasta
                 URL_HASH SHA256=45063104427a48892ba4ccb45cc295dc94760f08c1db90e6f3a73744591ada68)
 declare_datasource (FILE bin_meta.arg
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_meta.arg
-                URL_HASH SHA256=5abba452e93768fc2654f3ef3b72b74dfffda1061e25c2450e87b39bd5be6a0b)
+                URL_HASH SHA256=d3440ae40cbff43dee6941cee09ad3c4b9bc860c516c76afd3d2e4ae2319aac3)
+declare_datasource (FILE bin_meta.bin
+                URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_meta.bin
+                URL_HASH SHA256=303da9e67ae926a711e1ff86950f63aac5e5a57db7d4cb103a2163240f26de08)
 declare_datasource (FILE bin_paths.txt
                 URL ${CMAKE_SOURCE_DIR}/test/data/build/bin_paths.txt
                 URL_HASH SHA256=614e23263b689c7b4cc0ae41e99aeb5b43b351f865b4604f892320f2cc4377c7)
 
-declare_datasource (FILE 8bins19window0error100pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error100pattern1overlap.gff.out
+
+declare_datasource (FILE 8bins19window0error100pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error100pattern1query_every.gff.out
                 URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
-declare_datasource (FILE 8bins19window0error100pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error100pattern40overlap.gff.out
+declare_datasource (FILE 8bins19window0error100pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error100pattern50query_every.gff.out
                 URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
-declare_datasource (FILE 8bins19window0error50pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error50pattern1overlap.gff.out
+declare_datasource (FILE 8bins19window0error50pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error50pattern1query_every.gff.out
                 URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
-declare_datasource (FILE 8bins19window0error50pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error50pattern40overlap.gff.out
+declare_datasource (FILE 8bins19window0error50pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window0error50pattern50query_every.gff.out
                 URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
-declare_datasource (FILE 8bins19window1error100pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error100pattern1overlap.gff.out
-                URL_HASH SHA256=850fdb8afa39409fb91ff552a7c5c4e8efafbf7305accfb87afe1366dbd234b4)
-declare_datasource (FILE 8bins19window1error100pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error100pattern40overlap.gff.out
+declare_datasource (FILE 8bins19window1error100pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error100pattern1query_every.gff.out
                 URL_HASH SHA256=5e6059b76815b454926439a477cbb1e48a3e611a75c50bd5421aae258a9888b0)
-declare_datasource (FILE 8bins19window1error50pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error50pattern1overlap.gff.out
-                URL_HASH SHA256=3b8ab3cf3ddd8bde12610265053b6e388008548a684d3ce9ffe86cc0aded9dd0)
-declare_datasource (FILE 8bins19window1error50pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error50pattern40overlap.gff.out
+declare_datasource (FILE 8bins19window1error100pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error100pattern50query_every.gff.out
+                URL_HASH SHA256=5e6059b76815b454926439a477cbb1e48a3e611a75c50bd5421aae258a9888b0)
+declare_datasource (FILE 8bins19window1error50pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error50pattern1query_every.gff.out
                 URL_HASH SHA256=e87d9177c94fe52fb156dd09ff7d074dc88672d36e25ef625a08800fa94525a2)
-declare_datasource (FILE 8bins23window0error100pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error100pattern1overlap.gff.out
-                URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
-declare_datasource (FILE 8bins23window0error100pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error100pattern40overlap.gff.out
-                URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
-declare_datasource (FILE 8bins23window0error50pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error50pattern1overlap.gff.out
-                URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
-declare_datasource (FILE 8bins23window0error50pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error50pattern40overlap.gff.out
-                URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
-declare_datasource (FILE 8bins23window1error100pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error100pattern1overlap.gff.out
-                URL_HASH SHA256=921225eae9d8e54963d2423e39ee349158a2e39fc52c8926707749bcda1163a4)
-declare_datasource (FILE 8bins23window1error100pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error100pattern40overlap.gff.out
-                URL_HASH SHA256=583d848d9c2e5c082404283f0f4fa04ff55e99a2ee50418c4ced6f7673fbaa9e)
-declare_datasource (FILE 8bins23window1error50pattern1overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error50pattern1overlap.gff.out
+declare_datasource (FILE 8bins19window1error50pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins19window1error50pattern50query_every.gff.out
                 URL_HASH SHA256=3b8ab3cf3ddd8bde12610265053b6e388008548a684d3ce9ffe86cc0aded9dd0)
-declare_datasource (FILE 8bins23window1error50pattern40overlap.gff.out
-                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error50pattern40overlap.gff.out
-                URL_HASH SHA256=25f679f1387c823db111913dc25b6c7a0c81ad7b07b1296e37e6acc6e19b9cac)
+declare_datasource (FILE 8bins23window0error100pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error100pattern1query_every.gff.out
+                URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
+declare_datasource (FILE 8bins23window0error100pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error100pattern50query_every.gff.out
+                URL_HASH SHA256=e5195e7e9aa2db1864fbefc987d836abf68c019ba974b5b56fff1d8d7acaf780)
+declare_datasource (FILE 8bins23window0error50pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error50pattern1query_every.gff.out
+                URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
+declare_datasource (FILE 8bins23window0error50pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window0error50pattern50query_every.gff.out
+                URL_HASH SHA256=370442879ed07dbd6a5cb358695b8f8118803cee7c4bbd0dea6ebb17499f968f)
+declare_datasource (FILE 8bins23window1error100pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error100pattern1query_every.gff.out
+                URL_HASH SHA256=921225eae9d8e54963d2423e39ee349158a2e39fc52c8926707749bcda1163a4)
+declare_datasource (FILE 8bins23window1error100pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error100pattern50query_every.gff.out
+                URL_HASH SHA256=583d848d9c2e5c082404283f0f4fa04ff55e99a2ee50418c4ced6f7673fbaa9e)
+declare_datasource (FILE 8bins23window1error50pattern1query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error50pattern1query_every.gff.out
+                URL_HASH SHA256=3b8ab3cf3ddd8bde12610265053b6e388008548a684d3ce9ffe86cc0aded9dd0)
+declare_datasource (FILE 8bins23window1error50pattern50query_every.gff.out
+                URL ${CMAKE_SOURCE_DIR}/test/data/search/8bins23window1error50pattern50query_every.gff.out
+                URL_HASH SHA256=3b8ab3cf3ddd8bde12610265053b6e388008548a684d3ce9ffe86cc0aded9dd0)
 declare_datasource (FILE query.fq
                 URL ${CMAKE_SOURCE_DIR}/test/data/search/query.fq
                 URL_HASH SHA256=65fbd58c14ca2b4c2274f44fff14dbfce54dc04a89cf6759e1a69cecba933130)
@@ -182,6 +186,9 @@ declare_datasource (FILE multi_seq_query.fasta
 declare_datasource (FILE multi_seq_ref.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/multi_seq_ref.fasta
                 URL_HASH SHA256=a37f4be29ec99b66efb6ac235224b3145aadf8d5d6ff2c5c2f5324890170ce92)
+declare_datasource (FILE seg_files.txt
+                URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/seg_files.txt
+                URL_HASH SHA256=d6ee0cbbd7c19d4814fc47d8cc937ea4e375550ba4aafb78b0df85ba6aae641a)
 declare_datasource (FILE stellar_truth.gff
                 URL ${CMAKE_SOURCE_DIR}/test/data/consolidate/stellar_truth.gff
                 URL_HASH SHA256=95bf8d1fcbcfde4dfea3cd2055bcf35be161e6b21519e2c936b3595ef37c017b)

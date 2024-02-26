@@ -72,6 +72,7 @@ struct split_arguments
     bool metagenome{false};
     std::filesystem::path ref_meta_path{};
     bool write_out{false};
+    bool split_query{false};
     bool only_split{false};
     bool verbose{false};
 };
@@ -133,7 +134,7 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     seqan3::shape shape{seqan3::ungapped{20u}};
     uint8_t shape_size{shape.size()};
     uint8_t shape_weight{shape.count()};
-    uint64_t overlap{};
+    uint8_t query_every{2};
     size_t threshold{};
     uint32_t seg_count{64};
     uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};

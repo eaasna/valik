@@ -156,7 +156,7 @@ struct valik_base : public cli_test
     }
 
     static std::filesystem::path search_result_path(size_t const number_of_bins, size_t const window_size, size_t const number_of_errors, 
-                                                    size_t const pattern_size, size_t const overlap) noexcept
+                                                    size_t const pattern_size, size_t const query_every) noexcept
     {
         std::string name{};
         name += std::to_string(number_of_bins);
@@ -167,8 +167,8 @@ struct valik_base : public cli_test
         name += "error";
         name += std::to_string(pattern_size);
         name += "pattern";
-        name += std::to_string(overlap);
-        name += "overlap";
+        name += std::to_string(query_every);
+        name += "query_every";
         name += ".gff.out";
         return cli_test::data(name);
     }

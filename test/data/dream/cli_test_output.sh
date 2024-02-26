@@ -20,7 +20,6 @@ ibf_size="32k"
 
 # Search parameters
 pattern=50            # min local match length
-pat_overlap=49        # how much adjacent patterns overlap
 
 ref_input="ref.fasta"
 query="query.fasta"
@@ -42,9 +41,9 @@ do
         echo "Searching IBF with $e errors"
         dist_out=$b"bins"$w"window"$e"error.gff"
         #local_out="local"$b"bins"$w"window"$e"error.gff"
-        valik search --distribute --index "$index" --query "$query" --output "$dist_out" --error-rate "$er" --pattern "$pattern" --overlap "$pat_overlap" \
-                     --ref-meta "$seg_meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
-        #valik search --index "$index" --query "$query" --output "$local_out" --error-rate "$er" --pattern "$pattern" --overlap "$pat_overlap" \
+        valik search --distribute --index "$index" --query "$query" --output "$dist_out" --error-rate "$er" --pattern "$pattern" --query-every 1 \
+                     --ref-meta "$seg_meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2 --without-parameter-tuning
+        #valik search --index "$index" --query "$query" --output "$local_out" --error-rate "$er" --pattern "$pattern" --query-every 1 \
         #             --ref-meta "$seg_meta" --repeatPeriod 1 --repeatLength 10 --numMatches 1
 
         rm $VALIK_TMP/*

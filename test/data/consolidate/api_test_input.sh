@@ -67,6 +67,9 @@ min_len=50
 for bin in 8 16
 do
         valik split $ref_file --out ${bin}bins${min_len}overlap_reference_metadata.bin --seg-count $bin --pattern $min_len --without-parameter-tuning --write-out        
+        cat multi_seq_ref_*.fasta > multi_seq_ref.segments.fasta
+        rm multi_seq_ref_*.fasta
+        rm seg_files.txt
         grep ">" multi_seq_ref.segments.fasta | cut -c 2- | awk -F'_' '{print $1 "\t" $2 "\t" $3}' > segments.tsv
         while read -r id start len;
         do

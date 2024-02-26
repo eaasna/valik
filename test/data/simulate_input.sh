@@ -32,13 +32,18 @@ for exec in "${execs[@]}"; do
     fi
 done
 
+echo "### valik split input ###"
 ./split/api_test_input.sh $SEED
 ./split/cli_test_input.sh $SEED
 
+echo "### valik build input ###"
 ./build/cli_test_input.sh $SEED $BIN_NUMBER $HAPLOTYPE_COUNT
 
+echo "### valik search input ###"
 ./search/cli_test_input.sh $SEED $BIN_NUMBER $HAPLOTYPE_COUNT
 
+echo "### DREAM-Stellar input ###"
 ./dream/cli_test_input.sh $SEED
 
+echo "### consolidation lib input ###"
 ./consolidate/api_test_input.sh $SEED

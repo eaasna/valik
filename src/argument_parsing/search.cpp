@@ -115,12 +115,12 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       .description = "Used in the dynamic thresholding. The higher p_max, the lower the threshold.",
                       .advanced = true,
                       .validator = sharg::arithmetic_range_validator{0, 1}});
-    parser.add_option(arguments.overlap,
+    parser.add_option(arguments.query_every,
                       sharg::config{.short_id = '\0',
-                      .long_id = "overlap",
+                      .long_id = "query-every",
                       .description = "Choose how much sequential patterns overlap. "
                                      "This determines how many potential matches are skipped in prefiltering."
-                                     "(pattern_size - 1) considers all potential matches.", 
+                                     "--query-every 1 considers all potential matches.", 
                       .advanced = true});
     parser.add_option(arguments.cart_max_capacity,
                     sharg::config{.short_id = '\0',
@@ -193,6 +193,9 @@ void run_search(sharg::parser & parser)
     init_search_parser(parser, arguments);
 
     try_parsing(parser);
+
+    if (parser.is_option_set("ref-meta"))
+        arguments.manual_parameters = true;
 
     // ==========================================
     // Process --seg-count.
@@ -309,15 +312,17 @@ void run_search(sharg::parser & parser)
     // ==========================================
     if (!arguments.manual_parameters)
     {
+        if (!parser.is_option_set("ref-meta"))
+            throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
+
         std::filesystem::path search_profile_file{arguments.ref_meta_path};
         search_profile_file.replace_extension("arg");
         sharg::input_file_validator argument_input_validator{{"arg"}};
         argument_input_validator(search_profile_file);
         search_kmer_profile search_profile{search_profile_file};
-        search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
-
         arguments.pattern_size = search_profile.l;
         arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
+        search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
         arguments.max_segment_len = error_profile.max_segment_len;
         // seg_count is inferred in metagenome constructor
 
@@ -341,20 +346,16 @@ void run_search(sharg::parser & parser)
     // ==========================================
     // More checks.
     // ==========================================
-    //!TODO: make query_every instead of overlap parameter
-    if (parser.is_option_set("overlap"))
+    if (parser.is_option_set("query-every"))
     {
-        if (arguments.overlap >= arguments.pattern_size)
-                throw sharg::validation_error{"The overlap size has to be smaller than the pattern size."};
+        if (arguments.query_every > arguments.pattern_size)
+            throw sharg::validation_error("Reduce --query-every so that all positions in the query would be considered at least once."); 
     }
     else
     {
         if (arguments.fast)
-            arguments.overlap = arguments.pattern_size - 2;
-        else 
-            arguments.overlap = arguments.pattern_size - 1;
+            arguments.query_every = 3;
     }
-
 
     // ==========================================
     // Set strict thresholding parameters for fast mode.
