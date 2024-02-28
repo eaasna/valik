@@ -194,7 +194,7 @@ void run_search(sharg::parser & parser)
 
     try_parsing(parser);
 
-    if (arguments.manual_parameters && !parser.is_option_set("ref-meta") && !arguments.distribute)
+    if (arguments.manual_parameters && !parser.is_option_set("ref-meta") && arguments.split_query)
     {
         if (!parser.is_option_set("pattern") || !parser.is_option_set("seg-count"))
             throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
@@ -205,7 +205,7 @@ void run_search(sharg::parser & parser)
     // ==========================================
     if (parser.is_option_set("seg-count"))
     {
-        if (arguments.manual_parameters)
+        if (!arguments.manual_parameters)
         {
             std::cerr << "WARNING: segment count will be adjusted to match database metadata. "
                       << "Set --without-parameter-tuning to force manual input.\n"; 

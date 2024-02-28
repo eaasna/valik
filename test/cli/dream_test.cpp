@@ -36,7 +36,8 @@ TEST_P(dream_short_search, short_shared_mem)
                                               "--kmer 13",
                                               "--size 32k",
                                               "--ref-meta", ref_meta_path,
-                                              "--output ", index_path);
+                                              "--output ", index_path, 
+                                              "--without-parameter-tuning");
     EXPECT_EQ(build.exit_code, 0);
 
     cli_test_result const result = execute_app("valik", "search",
@@ -95,7 +96,8 @@ TEST_F(dream_short_search, no_matches)
                                                        "--kmer 13",
                                                        "--size 32k",
                                                        "--ref-meta", ref_meta_path,
-                                                       "--output ", index_path);
+                                                       "--output ", index_path,
+                                                       "--without-parameter-tuning");
     EXPECT_EQ(build.exit_code, 0);
     EXPECT_EQ(build.err, std::string{});
 
@@ -151,11 +153,14 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         "--kmer 13",
                                                         "--size 32k",
                                                         "--ref-meta", ref_meta_path,
-                                                        "--output ", index_path);
+                                                        "--output ", index_path, 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(build.exit_code, 0);
 
     cli_test_result const search = execute_app("valik", "search",
                                                         "--output search.gff",
+                                                        "--split-query",
+                                                        "--seg-count ", std::to_string(query_seg_count),
                                                         "--pattern ", std::to_string(pattern_size),
                                                         "--query-every 1",
                                                         "--error-rate ", std::to_string(error_rate),
@@ -169,7 +174,7 @@ TEST_P(dream_split_search, split_shared_mem)
 
     EXPECT_EQ(search.exit_code, 0);
     EXPECT_EQ(search.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
-    EXPECT_EQ(search.err, std::string{});
+    EXPECT_EQ(search.err, std::string{"WARNING: Database was split into 62 instead of 64 segments.\n"});
 
     auto distributed = valik::read_stellar_output(search_result_path(number_of_bins, window_size, number_of_errors), reference, std::ios::binary);
     auto local = valik::read_stellar_output("search.gff", reference);

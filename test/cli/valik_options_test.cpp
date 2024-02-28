@@ -209,7 +209,8 @@ TEST_F(argparse_build, kmer_window)
                                                          "--window 19",
                                                          "--size 8m",
                                                          "--output ibf.out",
-                                                         "--ref-meta ", meta_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path, 
+                                                         "--without-parameter-tuning");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] The k-mer size cannot be bigger than the window size.\n"});

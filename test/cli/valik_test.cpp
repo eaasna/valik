@@ -261,7 +261,8 @@ TEST_P(valik_build_clusters, build_from_clusters)
                                                          "--size 32k",
                                                          "--threads ", run_parallel ? "2" : "1",
                                                          "--output index.ibf", 
-                                                         "--ref-meta ", ref_meta_path);
+                                                         "--ref-meta ", ref_meta_path, 
+                                                         "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
@@ -304,7 +305,8 @@ TEST_P(valik_build_segments, build_from_segments)
                                                         "--window ", std::to_string(window_size),
                                                         "--size 32k",
                                                         "--output index.ibf",
-                                                        "--ref-meta", ref_meta_path);
+                                                        "--ref-meta", ref_meta_path, 
+                                                        "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});

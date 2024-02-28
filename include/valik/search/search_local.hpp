@@ -59,43 +59,46 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                                                          (double) query_meta.value().seg_count)) << "bp\n";
         }
 
-        //!TODO: search profile is processed twice
-        // 1. extract parameters pattern_size, max_segment_len, (<- needed before query split) and threshold
-        // 2. access FNR after metadata
-        std::filesystem::path search_profile_file{arguments.ref_meta_path};
-        search_profile_file.replace_extension("arg");
-        search_kmer_profile search_profile{search_profile_file};
-        if (arguments.verbose)
-            search_profile.print();
-        search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
-
-        search_pattern pattern(arguments.errors, arguments.pattern_size);
-        param_space space;
-        param_set params(arguments.shape_size, arguments.threshold, space);
-        filtering_request request(pattern, ref_meta, query_meta.value());
-        if (request.fpr(params) > 0.2)
-            std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
-
-        if (arguments.verbose)
+        if (!arguments.manual_parameters)
         {
-            std::cout.precision(3);
-            std::cout << "\n-----------Search parameters-----------\n";
-            std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
+            //!TODO: search profile is processed twice
+            // 1. extract parameters pattern_size, max_segment_len, (<- needed before query split) and threshold
+            // 2. access FNR after metadata
+            std::filesystem::path search_profile_file{arguments.ref_meta_path};
+            search_profile_file.replace_extension("arg");
+            search_kmer_profile search_profile{search_profile_file};
+            if (arguments.verbose)
+                search_profile.print();
+            search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
 
-            switch (arguments.search_type)
+            search_pattern pattern(arguments.errors, arguments.pattern_size);
+            param_space space;
+            param_set params(arguments.shape_size, arguments.threshold, space);
+            filtering_request request(pattern, ref_meta, query_meta.value());
+            if (request.fpr(params) > 0.2)
+                std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
+
+            if (arguments.verbose)
             {
-                case HEURISTIC: std::cout << "heuristic "; break;
-                case LEMMA: std::cout << "k-mer lemma "; break;
-                case STELLAR: throw std::runtime_error("Can not prefilter matches of length " + std::to_string(arguments.pattern_size) + 
-                                                       " with " + std::to_string(arguments.errors) + " errors.");
-                //!TODO: run stellar without prefiltering    
-            }
-                
-            std::cout << "threshold ";
-            std::cout << std::to_string(arguments.threshold) << '\n';
+                std::cout.precision(3);
+                std::cout << "\n-----------Search parameters-----------\n";
+                std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
 
-            std::cout << "FNR " << arguments.fnr << '\n';
-            std::cout << "FPR " << request.fpr(params) << '\n';
+                switch (arguments.search_type)
+                {
+                    case HEURISTIC: std::cout << "heuristic "; break;
+                    case LEMMA: std::cout << "k-mer lemma "; break;
+                    case STELLAR: throw std::runtime_error("Can not prefilter matches of length " + std::to_string(arguments.pattern_size) + 
+                                                           " with " + std::to_string(arguments.errors) + " errors.");
+                    //!TODO: run stellar without prefiltering    
+                }
+
+                std::cout << "threshold ";
+                std::cout << std::to_string(arguments.threshold) << '\n';
+
+                std::cout << "FNR " << arguments.fnr << '\n';
+                std::cout << "FPR " << request.fpr(params) << '\n';
+            }
         }
     }
 
@@ -186,11 +189,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                 threadOptions.binSequences.emplace_back(seg.seq_vec[0]);
                 threadOptions.segmentBegin = seg.start;
                 threadOptions.segmentEnd = seg.start + seg.len;
-
-                // ==========================================
-                //!WORKAROUND: Stellar does not allow smaller error rates
-                // ==========================================
-                threadOptions.numEpsilon = std::max(arguments.error_rate, (float) 0.00001);
+                threadOptions.numEpsilon = arguments.error_rate;
                 threadOptions.epsilon = stellar::utils::fraction::from_double(threadOptions.numEpsilon).limit_denominator();
                 threadOptions.minLength = arguments.pattern_size;
                 threadOptions.outputFile = cart_queries_path.string() + ".gff";
@@ -371,14 +370,13 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     }
 
     auto start = std::chrono::high_resolution_clock::now();
+    raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
     if constexpr (is_split)
     {
-        raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
         iterate_split_queries(arguments, index.ibf(), thresholder, queue, query_meta.value());
     }
     else
     {
-        raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
         iterate_short_queries(arguments, index.ibf(), thresholder, queue);
     }
 
