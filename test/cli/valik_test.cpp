@@ -407,6 +407,8 @@ TEST_P(valik_search_segments, search)
                                                         "--threads 1",
                                                         "--ref-meta", segment_metadata_path(segment_overlap, number_of_bins),
                                                         "--p_max 0.25", 
+                                                        "--cart-max-capacity 3",
+                                                        "--max-queued-carts 10",
                                                         "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
