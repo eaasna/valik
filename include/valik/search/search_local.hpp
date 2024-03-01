@@ -9,6 +9,7 @@
 #include <valik/split/metadata.hpp>
 #include <utilities/cart_queue.hpp>
 #include <utilities/consolidate/merge_processes.hpp>
+#include <utilities/threshold/search_kmer_profile.hpp>
 
 #include <stellar/database_id_map.hpp>
 #include <stellar/diagnostics/print.tpp>
@@ -49,7 +50,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     std::optional<metadata> query_meta;
     if (arguments.split_query)
     {
-        query_meta = metadata(arguments);    
+        query_meta = metadata(arguments);
         if (arguments.verbose)
         {
             std::cout << "\n-----------Preprocessing queries-----------\n";
@@ -67,43 +68,46 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
             std::filesystem::path search_profile_file{arguments.ref_meta_path};
             search_profile_file.replace_extension("arg");
             search_kmer_profile search_profile{search_profile_file};
-            if (arguments.verbose)
-                search_profile.print();
             search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
 
             search_pattern pattern(arguments.errors, arguments.pattern_size);
             param_space space;
             param_set params(arguments.shape_size, arguments.threshold, space);
             filtering_request request(pattern, ref_meta, query_meta.value());
-            if (request.fpr(params) > 0.2)
+            if ((request.fpr(params) > 0.2) && (arguments.search_type != STELLAR))
                 std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
 
             if (arguments.verbose)
             {
                 std::cout.precision(3);
-                std::cout << "\n-----------Search parameters-----------\n";
-                std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
 
-                switch (arguments.search_type)
+                if (arguments.search_type == STELLAR)
                 {
-                    case HEURISTIC: std::cout << "heuristic "; break;
-                    case LEMMA: std::cout << "k-mer lemma "; break;
-                    case STELLAR: throw std::runtime_error("Can not prefilter matches of length " + std::to_string(arguments.pattern_size) + 
-                                                           " with " + std::to_string(arguments.errors) + " errors.");
-                    //!TODO: run stellar without prefiltering    
+                    std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate. " << 
+                                 "Launching exact Stellar search without prefiltering.";
                 }
+                else
+                {
+                    std::cout << "\n-----------Search parameters-----------\n";
+                    std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
+                    switch (arguments.search_type)
+                    {
+                        case HEURISTIC: std::cout << "heuristic "; break;
+                        case LEMMA: std::cout << "k-mer lemma "; break;
+                    }
+                    std::cout << "threshold ";
+                    std::cout << std::to_string(arguments.threshold) << '\n';
 
-                std::cout << "threshold ";
-                std::cout << std::to_string(arguments.threshold) << '\n';
-
-                std::cout << "FNR " << arguments.fnr << '\n';
-                std::cout << "FPR " << request.fpr(params) << '\n';
+                    std::cout << "FNR " << arguments.fnr << '\n';
+                    std::cout << "FPR " << request.fpr(params) << '\n';
+                }
             }
         }
     }
 
     using TAlphabet = seqan2::Dna;
     using TSequence = seqan2::String<TAlphabet>;
+    // the queue hands records over from the producer threads (valik prefiltering) to the consumer threads (stellar search) 
     auto queue = cart_queue<shared_query_record<TSequence>>{index.ibf().bin_count(), arguments.cart_max_capacity, arguments.max_queued_carts};
 
     std::mutex mutex;
@@ -139,6 +143,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     bool const databasesSuccess = input_databases_time.measure_time([&]()
     {
         std::cout << "Launching stellar search on a shared memory machine...\n";
+        //!TODO: allow metagenome database
         return stellar::_importAllSequences(bin_paths[0][0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
     });
     if (!databasesSuccess)
@@ -370,7 +375,9 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     }
 
     auto start = std::chrono::high_resolution_clock::now();
+    //!TODO: do not make thresholder if search_kind == STELLAR 
     raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
+    // producer threads are created here
     if constexpr (is_split)
     {
         iterate_split_queries(arguments, index.ibf(), thresholder, queue, query_meta.value());

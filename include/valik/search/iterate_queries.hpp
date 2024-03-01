@@ -1,6 +1,6 @@
 #pragma once
 
-#include <valik/search/prefilter_queries_parallel.hpp>
+#include <valik/search/producer_threads_parallel.hpp>
 #include <valik/search/search_time_statistics.hpp>
 #include <valik/split/metadata.hpp>
 
@@ -89,7 +89,10 @@ void iterate_short_queries(search_arguments const & arguments,
 
         if (query_records.size() > chunk_size)
         {
-            prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+            if (arguments.search_type == STELLAR)
+                search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, queue);
+            else
+                prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
             query_records.clear();
         }
     }
@@ -97,7 +100,10 @@ void iterate_short_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+    if (arguments.search_type == STELLAR)
+        search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, queue);    
+    else
+        prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
 }
 
 /**
@@ -156,7 +162,10 @@ void iterate_split_queries(search_arguments const & arguments,
 
             if (query_records.size() > chunk_size)
             {
-                prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+                if (arguments.search_type == STELLAR)
+                    search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, queue);
+                else
+                    prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
                 query_records.clear();
             }
         }
@@ -165,7 +174,10 @@ void iterate_split_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+    if (arguments.search_type == STELLAR)
+        search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, queue);
+    else
+        prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
 }
 
 }   // namespace valik::app

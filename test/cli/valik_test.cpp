@@ -353,6 +353,8 @@ TEST_P(valik_search_clusters, search)
                                                         "--threads 1",
                                                         "--tau 0.75",
                                                         "--p_max 0.75", 
+                                                        "--cart-max-capacity 3",
+                                                        "--max-queued-carts 10",
                                                         "--without-parameter-tuning");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});

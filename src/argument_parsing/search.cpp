@@ -326,23 +326,24 @@ void run_search(sharg::parser & parser)
         arguments.pattern_size = search_profile.l;
         arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
         search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
-        arguments.max_segment_len = error_profile.max_segment_len;
         // seg_count is inferred in metagenome constructor
-
-        if (error_profile.search_type == STELLAR)
-        {
-            throw std::runtime_error("Can not prefilter matches of length " + std::to_string(error_profile.pattern.l) + 
-                                     " with " + std::to_string(error_profile.pattern.e) + " errors. Reduce the error rate.");
-            //!TODO: run stellar without prefiltering
-        }
-
-        arguments.threshold = error_profile.params.t;
-        arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
-        if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
-            throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
-        arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
         arguments.search_type = error_profile.search_type;
-        arguments.fnr = error_profile.fnr;
+        if (arguments.search_type == STELLAR)
+        {
+            std::cout << "Can not prefilter matches of length " << std::to_string(error_profile.pattern.l) << 
+                                     " with " << std::to_string(error_profile.pattern.e) << " errors. Searching without prefiltering.\n";
+            arguments.fnr = 0.0;
+        }
+        else
+        {
+            arguments.max_segment_len = error_profile.max_segment_len;
+            arguments.threshold = error_profile.params.t;
+            arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
+            if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
+                throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
+            arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
+            arguments.fnr = error_profile.fnr;
+        }
     }
 
     // ==========================================

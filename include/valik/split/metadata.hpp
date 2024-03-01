@@ -422,8 +422,11 @@ struct metadata
         metadata(search_arguments & arguments)
         {
             scan_database_file(arguments.query_file);
-            if (!arguments.manual_parameters && (arguments.seg_count_in == std::numeric_limits<uint32_t>::max()))
+            if (!arguments.manual_parameters)
+            {
                 arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+            }
+
             scan_database_sequences(arguments);
             if (arguments.manual_parameters && (segments.size() != arguments.seg_count))
                 seqan3::debug_stream << "WARNING: Database was split into " << segments.size() << " instead of " << arguments.seg_count << " segments.\n";
