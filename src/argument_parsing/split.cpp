@@ -118,6 +118,12 @@ void run_split(sharg::parser & parser)
                   << "Set --without-parameter-tuning to force manual input.\n";
     }
 
+    if (parser.is_option_set("seg-count") && !arguments.only_split)
+    {
+        std::cerr << "WARNING: seg count will be adjusted to the next multiple of 64. "
+                  << "Set --without-parameter-tuning to force manual input.\n";
+    }
+
     // ==========================================
     // Dispatch
     // ==========================================

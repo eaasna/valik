@@ -46,7 +46,6 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
 
     metadata ref_meta = metadata(arguments.ref_meta_path);
     env_var_pack var_pack{};
-
     std::optional<metadata> query_meta;
     if (arguments.split_query)
     {

@@ -79,7 +79,8 @@ TEST_P(valik_split_ref, split_ref)
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{});
+    EXPECT_EQ(result.err, std::string{"WARNING: seg count will be adjusted to the next multiple of 64. "
+                                      "Set --without-parameter-tuning to force manual input.\n"});
 
 
     valik::metadata meta(ref_meta_path);

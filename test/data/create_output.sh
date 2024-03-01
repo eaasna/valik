@@ -35,13 +35,13 @@ for exec in "${execs[@]}"; do
 done
 
 echo "### Running valik split ###"
-./split/cli_test_output.sh
+#./split/cli_test_output.sh
 
 echo "### Running valik build ###"
-./build/cli_test_output.sh
+#./build/cli_test_output.sh
 
 echo "### Running valik search ###"
-./search/cli_test_output.sh
+#./search/cli_test_output.sh
 
 export VALIK_STELLAR=stellar
 export VALIK_MERGE=cat
@@ -50,6 +50,6 @@ echo "### Running distributed DREAM-Stellar ###"
 ./dream/cli_test_output.sh
 
 echo "### Running sequential Stellar ###"
-./consolidate/api_test_output.sh
+#./consolidate/api_test_output.sh
 
-echo "### Finished ###"
+#echo "### Finished ###"

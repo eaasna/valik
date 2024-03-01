@@ -326,7 +326,7 @@ void run_search(sharg::parser & parser)
         arguments.pattern_size = search_profile.l;
         arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
         search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
-        // seg_count is inferred in metagenome constructor
+        // seg_count is inferred in metadata constructor
         arguments.search_type = error_profile.search_type;
         if (arguments.search_type == STELLAR)
         {

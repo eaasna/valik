@@ -96,7 +96,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
 
     auto best_params = param_set(attr.k, space.max_thresh, space);
     search_kmer_profile kmer_thresh{best_params.k, ref_meta.pattern_size};
-    for (uint8_t errors{1}; errors <= max_errors && errors <= space.max_errors; errors++)
+    for (uint8_t errors{0}; errors <= max_errors && errors <= space.max_errors; errors++)
     {
         search_kind search_type{LEMMA};
         search_pattern pattern(errors, ref_meta.pattern_size);

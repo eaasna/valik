@@ -424,7 +424,8 @@ struct metadata
             scan_database_file(arguments.query_file);
             if (!arguments.manual_parameters)
             {
-                arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+                if (total_len > (arguments.max_segment_len * 10))
+                    arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
             }
 
             scan_database_sequences(arguments);

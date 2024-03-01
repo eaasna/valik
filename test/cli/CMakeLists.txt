@@ -72,10 +72,8 @@ target_use_datasources (valik_test FILES 8bins23window1error100pattern50query_ev
 target_use_datasources (valik_test FILES query.fq)
 
 add_cli_test (dream_test.cpp)
-target_use_datasources (dream_test FILES 16bins13window1error.gff)
-target_use_datasources (dream_test FILES 16bins15window1error.gff)
-target_use_datasources (dream_test FILES 4bins13window1error.gff)
-target_use_datasources (dream_test FILES 4bins15window1error.gff)
+target_use_datasources (dream_test FILES 1error.gff)
+target_use_datasources (dream_test FILES 2error.gff)
 target_use_datasources (dream_test FILES dummy_reads.fastq)
 target_use_datasources (dream_test FILES query.fasta)
 target_use_datasources (dream_test FILES ref.fasta)

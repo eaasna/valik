@@ -189,14 +189,9 @@ struct valik_base : public cli_test
         return cli_test::data(name);
     }
 
-    static std::filesystem::path search_result_path(size_t const number_of_bins, size_t const window_size,
-                                                    size_t const number_of_errors) noexcept
+    static std::filesystem::path search_result_path(size_t const number_of_errors) noexcept
     {
         std::string name;
-        name += std::to_string(number_of_bins);
-        name += "bins";
-        name += std::to_string(window_size);
-        name += "window";
         name += std::to_string(number_of_errors);
         name += "error";
         name += ".gff";
@@ -502,14 +497,28 @@ struct valik_base : public cli_test
             if (it == actual.end())
             {
                 not_actually_found++;
-                seqan3::debug_stream << match.to_string();
+                seqan3::debug_stream << "not found:\n" << match.to_string();
             }
 
             // EXPECT_EQ(match.percid, (*it).percid);
             // EXPECT_EQ(match.attributes, (*it).attributes);
         }
-
         EXPECT_EQ(not_actually_found, 0);
+
+        size_t not_expected{0};
+        for (auto & match : actual)
+        {
+            auto it = std::find(expected.begin(), expected.end(), match);
+            if (it == expected.end())
+            {
+                not_expected++;
+                seqan3::debug_stream << "not expected:\n" << match.to_string();
+            }
+
+            // EXPECT_EQ(match.percid, (*it).percid);
+            // EXPECT_EQ(match.attributes, (*it).attributes);
+        }
+        EXPECT_EQ(not_expected, 0);
     }
 };
 
@@ -526,5 +535,5 @@ struct valik_search_clusters : public valik_base, public testing::WithParamInter
 struct valik_search_segments : public valik_base, public testing::WithParamInterface<std::tuple<size_t, size_t, size_t, size_t,
     size_t, size_t>> {};
 
-struct dream_short_search : public valik_base, public testing::WithParamInterface<std::tuple<size_t, size_t, size_t>> {};
-struct dream_split_search : public valik_base, public testing::WithParamInterface<std::tuple<size_t, size_t, size_t>> {};
+struct dream_short_search : public valik_base, public testing::WithParamInterface<std::tuple<size_t>> {};
+struct dream_split_search : public valik_base, public testing::WithParamInterface<std::tuple<size_t>> {};
