@@ -19,7 +19,7 @@ void consolidate_matches(search_arguments const & arguments)
 {
     auto ref_meta = metadata(arguments.ref_meta_path);
     auto matches = read_stellar_output(arguments.all_matches, ref_meta);
-    auto before_duplicate_removal = matches.size();
+    //auto before_duplicate_removal = matches.size();
     std::sort(matches.begin(), matches.end(), std::greater<stellar_match>());
     matches.erase( std::unique( matches.begin(), matches.end() ), matches.end() );
 

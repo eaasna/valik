@@ -141,7 +141,6 @@ TEST_P(dream_split_search, split_shared_mem)
     cli_test_result const search = execute_app("valik", "search",
                                                         "--output search.gff",
                                                         "--split-query",
-                                                        "--query-every 1",
                                                         "--error-rate ", std::to_string(error_rate),
                                                         "--index ", index_path,
                                                         "--query ", data("query.fasta"),

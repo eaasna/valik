@@ -44,6 +44,9 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
         time_statistics.index_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
     }
 
+    if (arguments.max_queued_carts == std::numeric_limits<uint32_t>::max()) // if no user input
+        arguments.max_queued_carts = index.ibf().bin_count();
+
     metadata ref_meta = metadata(arguments.ref_meta_path);
     env_var_pack var_pack{};
     std::optional<metadata> query_meta;
@@ -63,7 +66,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
         {
             //!TODO: search profile is processed twice
             // 1. extract parameters pattern_size, max_segment_len, (<- needed before query split) and threshold
-            // 2. access FNR after metadata
+            // 2. access FNR after linear scan of sequences
             std::filesystem::path search_profile_file{arguments.ref_meta_path};
             search_profile_file.replace_extension("arg");
             search_kmer_profile search_profile{search_profile_file};

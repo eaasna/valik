@@ -426,6 +426,8 @@ struct metadata
             {
                 if (total_len > (arguments.max_segment_len * 10))
                     arguments.seg_count = std::round(total_len / (arguments.max_segment_len - arguments.pattern_size));
+                else
+                    arguments.seg_count = std::max(arguments.seg_count, (uint32_t) sequences.size() * 2);
             }
 
             scan_database_sequences(arguments);

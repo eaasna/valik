@@ -490,35 +490,22 @@ struct valik_base : public cli_test
                             std::vector<valik::stellar_match> const & actual)
     {
         EXPECT_EQ(expected.size(), actual.size());
-        size_t not_actually_found{0};
+        std::map<std::string, size_t> expected_match_counter{};
         for (auto & match : expected)
         {
-            auto it = std::find(actual.begin(), actual.end(), match);
-            if (it == actual.end())
-            {
-                not_actually_found++;
-                seqan3::debug_stream << "not found:\n" << match.to_string();
-            }
-
-            // EXPECT_EQ(match.percid, (*it).percid);
-            // EXPECT_EQ(match.attributes, (*it).attributes);
+            expected_match_counter[match.qname]++;
         }
-        EXPECT_EQ(not_actually_found, 0);
 
-        size_t not_expected{0};
+        std::map<std::string, size_t> actual_match_counter{};
         for (auto & match : actual)
         {
-            auto it = std::find(expected.begin(), expected.end(), match);
-            if (it == expected.end())
-            {
-                not_expected++;
-                seqan3::debug_stream << "not expected:\n" << match.to_string();
-            }
-
-            // EXPECT_EQ(match.percid, (*it).percid);
-            // EXPECT_EQ(match.attributes, (*it).attributes);
+            actual_match_counter[match.qname]++;
         }
-        EXPECT_EQ(not_expected, 0);
+
+        for (auto it = expected_match_counter.begin(); it != expected_match_counter.end(); it++)
+        {
+            EXPECT_EQ(actual_match_counter.at((*it).first), (*it).second);
+        }
     }
 };
 

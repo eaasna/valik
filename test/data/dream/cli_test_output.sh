@@ -30,13 +30,13 @@ for e in 1 2
 do
     er=$(echo $e/$pattern | bc -l)  # error rate
 
-    echo "Searching IBF with $e errors"
+    echo "Searching IBF with error rate $er"
     dist_out=$e"error.gff"
-    #local_out="local"$e"error.gff"
     valik search --distribute --index "$index" --query "$query" --output "$dist_out" --error-rate "$er" \
-                 --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2 
+                 --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
+    #local_out=$e"error.gff"
     #valik search --index "$index" --query "$query" --output "$local_out" --error-rate "$er" \
-    #             --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 1
+    #             --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
 
     rm $VALIK_TMP/*
 

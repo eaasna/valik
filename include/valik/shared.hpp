@@ -176,8 +176,8 @@ struct search_arguments final : public minimiser_threshold_arguments, search_pro
     bool fast{false};
     bool verbose{false};
 
-    size_t cart_max_capacity{1000}; //!TODO determine suitable values
-    size_t max_queued_carts{64};
+    size_t cart_max_capacity{1000};
+    size_t max_queued_carts{std::numeric_limits<size_t>::max()};
 
     raptor::threshold::threshold_parameters make_threshold_parameters() const noexcept
     {

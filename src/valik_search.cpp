@@ -53,7 +53,7 @@ void valik_search(search_arguments & arguments)
 
     // Consolidate matches (not necessary when searching a metagenomic database)
     auto start = std::chrono::high_resolution_clock::now();
-    if (!arguments.ref_meta_path.empty())
+    if (arguments.bin_path.size() == 1)
     {
         consolidate_matches(arguments);
         const bool error_in_delete = !std::filesystem::remove(arguments.all_matches);
