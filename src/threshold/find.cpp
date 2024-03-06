@@ -121,7 +121,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
         }
         
         uint64_t max_len = ref_meta.max_segment_len(best_params);
-        if ((pattern.l * 2) > max_len)
+        if ((pattern.l * 10) > max_len)
         {
             search_type = STELLAR;
             kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type});

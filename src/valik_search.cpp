@@ -33,6 +33,13 @@ void runtime_to_compile_time(func_t const & func, bool b1, bs_t... bs)
 void valik_search(search_arguments & arguments)
 {
     search_time_statistics time_statistics{};
+    
+    if (arguments.verbose)
+    {
+        std::cout << "\n-----------Local match definition-----------\n";
+        std::cout << "min length " << arguments.pattern_size << "bp\n";
+        std::cout << "max error rate " << arguments.error_rate << '\n';
+    }
 
     bool failed;
     if (arguments.distribute)
@@ -45,10 +52,10 @@ void valik_search(search_arguments & arguments)
     // Shared memory execution
     else
     {
-        runtime_to_compile_time([&]<bool is_compressed, bool is_split>()
+        runtime_to_compile_time([&]<bool is_compressed, bool is_split, bool stellar_only>()
         {
-            failed = search_local<is_compressed, is_split>(arguments, time_statistics);
-        }, arguments.compressed, arguments.split_query);
+            failed = search_local<is_compressed, is_split, stellar_only>(arguments, time_statistics);
+        }, arguments.compressed, arguments.split_query, (arguments.search_type == STELLAR));
     }
 
     // Consolidate matches (not necessary when searching a metagenomic database)

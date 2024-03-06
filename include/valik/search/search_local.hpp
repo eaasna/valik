@@ -10,6 +10,7 @@
 #include <utilities/cart_queue.hpp>
 #include <utilities/consolidate/merge_processes.hpp>
 #include <utilities/threshold/search_kmer_profile.hpp>
+#include <utilities/threshold/filtering_request.hpp>
 
 #include <stellar/database_id_map.hpp>
 #include <stellar/diagnostics/print.tpp>
@@ -31,7 +32,7 @@ namespace valik::app
  * @param time_statistics Run-time statistics.
  * @return false if search failed.
  */
-template <bool compressed, bool is_split>
+template <bool compressed, bool is_split, bool stellar_only>
 bool search_local(search_arguments & arguments, search_time_statistics & time_statistics)
 {
     using index_structure_t = std::conditional_t<compressed, index_structure::ibf_compressed, index_structure::ibf>;
@@ -50,7 +51,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     metadata ref_meta = metadata(arguments.ref_meta_path);
     env_var_pack var_pack{};
     std::optional<metadata> query_meta;
-    if (arguments.split_query)
+    if (arguments.split_query && !stellar_only)
     {
         query_meta = metadata(arguments);
         if (arguments.verbose)
@@ -83,26 +84,18 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
             {
                 std::cout.precision(3);
 
-                if (arguments.search_type == STELLAR)
+                std::cout << "\n-----------Search parameters-----------\n";
+                std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
+                switch (arguments.search_type)
                 {
-                    std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate. " << 
-                                 "Launching exact Stellar search without prefiltering.";
+                    case HEURISTIC: std::cout << "heuristic "; break;
+                    case LEMMA: std::cout << "k-mer lemma "; break;
                 }
-                else
-                {
-                    std::cout << "\n-----------Search parameters-----------\n";
-                    std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
-                    switch (arguments.search_type)
-                    {
-                        case HEURISTIC: std::cout << "heuristic "; break;
-                        case LEMMA: std::cout << "k-mer lemma "; break;
-                    }
-                    std::cout << "threshold ";
-                    std::cout << std::to_string(arguments.threshold) << '\n';
+                std::cout << "threshold ";
+                std::cout << std::to_string(arguments.threshold) << '\n';
 
-                    std::cout << "FNR " << arguments.fnr << '\n';
-                    std::cout << "FPR " << request.fpr(params) << '\n';
-                }
+                std::cout << "FNR " << arguments.fnr << '\n';
+                std::cout << "FPR " << request.fpr(params) << '\n';
             }
         }
     }
@@ -380,7 +373,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     //!TODO: do not make thresholder if search_kind == STELLAR 
     raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
     // producer threads are created here
-    if constexpr (is_split)
+    if constexpr (is_split && !stellar_only)
     {
         iterate_split_queries(arguments, index.ibf(), thresholder, queue, query_meta.value());
     }
