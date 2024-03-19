@@ -46,10 +46,6 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       sharg::config{.short_id = '\0',
                       .long_id = "fast",
                       .description = "Execute the search in fast mode when few false negatives can be tolerated."});
-    parser.add_flag(arguments.compressed,
-                    sharg::config{.short_id = '\0',
-                    .long_id = "compressed",
-                    .description = "Build a compressed IBF."});
     parser.add_flag(arguments.write_time,
                     sharg::config{.short_id = '\0',
                     .long_id = "time",

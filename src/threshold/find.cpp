@@ -89,8 +89,8 @@ param_set get_best_params(search_pattern const & pattern,
  *        Consider different error rates up to max_err.
 */
 search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
-                                              kmer_loss const attr, 
-                                              uint8_t const max_errors)
+                                                  kmer_loss const attr, 
+                                                  uint8_t const max_errors)
 {
     param_space space;
 

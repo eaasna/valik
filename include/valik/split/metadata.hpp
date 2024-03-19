@@ -579,6 +579,7 @@ struct metadata
         {
             double fpr{1};
             double p = kmer_spurious_match_prob(params.k);
+            const double precision{1e-9};
             /*
             For parameters 
         
@@ -604,12 +605,14 @@ struct metadata
             size_t kmers_per_pattern = pattern_size - params.k + 1;
             for (uint8_t matching_kmer_count{0}; matching_kmer_count < params.t; matching_kmer_count++)
             {
+                if (fpr < precision) 
+                    break;
                 fpr -= combinations(matching_kmer_count, kmers_per_pattern) * 
                                     pow(p, matching_kmer_count) * 
                                     pow(1 - p, kmers_per_pattern - matching_kmer_count);
             }
 
-            return std::max(0.0, fpr);
+            return std::max(0.0, fpr - precision);
         }
 
         /**
