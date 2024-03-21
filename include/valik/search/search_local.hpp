@@ -191,7 +191,6 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                 threadOptions.segmentEnd = seg.start + seg.len;
                 threadOptions.minLength = arguments.pattern_size;
                 threadOptions.epsilon = stellar::utils::fraction::from_double_with_limit(arguments.error_rate, arguments.pattern_size).limit_denominator();
-                threadOptions.numEpsilon = threadOptions.epsilon.double();
                 threadOptions.outputFile = cart_queries_path.string() + ".gff";
                 
                 {
