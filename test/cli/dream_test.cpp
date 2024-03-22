@@ -84,7 +84,6 @@ TEST_F(dream_short_search, no_matches)
     EXPECT_EQ(split_ref.out, std::string{});
 
     cli_test_result const build = execute_app("valik", "build",
-                                                       "--size 32k",
                                                        "--ref-meta", ref_meta_path,
                                                        "--output ", index_path);
     EXPECT_EQ(build.exit_code, 0);

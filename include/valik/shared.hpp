@@ -86,7 +86,9 @@ struct build_arguments
     uint8_t threads{1u};
 
     std::vector<std::vector<std::string>> bin_path{};
-    std::filesystem::path out_path{"./"};
+    std::filesystem::path out_path;
+    std::filesystem::path out_dir{"./"};
+    float fpr{0.05};
     std::string size{};
     uint64_t bins{64};
     uint64_t bits{4096};
@@ -94,6 +96,10 @@ struct build_arguments
     bool compressed{false};
     bool fast{false};
     bool manual_parameters{false};
+    bool input_is_minimiser{false};
+
+    bool kmer_count_cutoff{false};
+    bool use_filesize_dependent_cutoff{false};
 
     std::filesystem::path ref_meta_path{};
 };

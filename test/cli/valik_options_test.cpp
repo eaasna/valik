@@ -168,16 +168,6 @@ TEST_F(argparse_build, output_wrong)
     EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option --output: Cannot write \"foo/out.ibf\"!\n"});
 }
 
-TEST_F(argparse_build, size_missing)
-{
-    cli_test_result const result = execute_app("valik", "build",
-                                                         "--output ./ibf.out",
-                                                         "--ref-meta ", meta_file.file_path);
-    EXPECT_NE(result.exit_code, 0);
-    EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{"[Error] Option --size is required but not set.\n"});
-}
-
 TEST_F(argparse_build, size_wrong_space)
 {
     cli_test_result const result = execute_app("valik", "build",

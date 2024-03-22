@@ -90,7 +90,7 @@ private:
                             for (auto && value : seq | hash_view())
                                 ibf.emplace(value, seqan3::bin_index{bin_number});
             };
-            call_parallel_on_bins(clustered_reference_worker, *arguments);
+            call_parallel_on_bins(clustered_reference_worker, arguments->bin_path, arguments->threads);
         }
         return index;
     }

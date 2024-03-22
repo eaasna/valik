@@ -15,6 +15,10 @@ target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/
 target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/robin-hood-hashing/src/include)
 target_compile_options ("${PROJECT_NAME}_interface" INTERFACE "-pedantic" "-Wall" "-Wextra" "-Wno-interference-size")
 
+# IBF size 
+add_library ("${PROJECT_NAME}_index_size_lib" STATIC prepare/compute_bin_size.cpp)
+target_link_libraries ("${PROJECT_NAME}_index_size_lib" PUBLIC "${PROJECT_NAME}_interface")
+
 # Parameter tuning
 add_library ("${PROJECT_NAME}_threshold_lib" STATIC threshold/find.cpp)
 target_link_libraries ("${PROJECT_NAME}_threshold_lib" PUBLIC "${PROJECT_NAME}_interface")
@@ -90,6 +94,7 @@ target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_consolid
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_merge_processes_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_threshold_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_threshold_io_lib")
+target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_index_size_lib")
 
 # Valik executable
 add_executable ("${PROJECT_NAME}" valik_main.cpp)
