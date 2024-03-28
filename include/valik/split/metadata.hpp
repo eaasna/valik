@@ -379,6 +379,7 @@ struct metadata
             for (auto it = sequences.begin(); it < first_long_seq; it++)
             {
                 seqan3::debug_stream << "Sequence: " << (*it).id << " is too short and will be skipped.\n";
+                total_len -= (*it).len;
             }
 
             if (arguments.seg_count < (sequences.size() - discarded_short_sequences))
@@ -623,7 +624,10 @@ struct metadata
             double fp_per_pattern = pattern_spurious_match_prob(params);
             if (fp_per_pattern < 9e-6) // avoid very small floating point numbers
                 return 1e4;
-            size_t max_patterns_per_segment = std::round(1.0 / fp_per_pattern * 0.1);    // allow 0.1 FPR
+
+            constexpr double fpr_limit = 0.05; // allow FPR of 5% per query segment
+            size_t max_patterns_per_segment = std::floor(log(1 - fpr_limit) / log(1 - fp_per_pattern)); 
+            
             return pattern_size + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
         }
 };

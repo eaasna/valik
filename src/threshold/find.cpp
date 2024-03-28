@@ -93,18 +93,15 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                                                   uint8_t const max_errors)
 {
     param_space space;
-
-    auto best_params = param_set(attr.k, space.max_thresh, space);
-    search_kmer_profile kmer_thresh{best_params.k, ref_meta.pattern_size};
+    search_kmer_profile kmer_thresh{attr.k, ref_meta.pattern_size};
     for (uint8_t errors{0}; errors <= max_errors && errors <= space.max_errors; errors++)
     {
-        search_kind search_type{LEMMA};
         search_pattern pattern(errors, ref_meta.pattern_size);
-        if (kmer_lemma_threshold(pattern.l, attr.k, errors) > 1)
-        {
-            best_params.t = kmer_lemma_threshold(pattern.l, attr.k, errors);
-        }
-        else
+        search_kind search_type{LEMMA};
+        auto best_params = param_set(attr.k, kmer_lemma_threshold(pattern.l, attr.k, errors), space);
+        
+        if ((best_params.t < 4) || 
+            (1 - pow(1 - ref_meta.pattern_spurious_match_prob(best_params), 5e3) > 0.05))
         {
             search_type = HEURISTIC;
             double best_score = pattern.l;
@@ -121,7 +118,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
         }
         
         uint64_t max_len = ref_meta.max_segment_len(best_params);
-        if ((pattern.l * 10) > max_len)
+        if ((pattern.l * 100) > max_len)
         {
             search_type = STELLAR;
             kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type});

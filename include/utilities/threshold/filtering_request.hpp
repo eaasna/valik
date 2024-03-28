@@ -40,14 +40,10 @@ struct filtering_request
     double fpr(param_set const & params) const
     {
         double pattern_p = ref_meta.pattern_spurious_match_prob(params);
-        /*
-        uint64_t independent_patterns_per_segment = query_seg_len / (double) l;
-        double independent_patterns_p = std::min(1.0, pattern_p * independent_patterns_per_segment);
-        std::cout << "independent_patterns_p\t" << independent_patterns_p << '\n';
-        */
-        uint64_t total_patterns_per_segment = std::round((query_meta.total_len / (double) query_meta.seg_count - pattern.l + 1) / (double) query_every);
-        double total_patterns_p = std::min(1.0, pattern_p * total_patterns_per_segment);
-        return total_patterns_p;
+        uint64_t patterns_per_segment = std::round((query_meta.total_len / (double) query_meta.seg_count - pattern.l + 1) / (double) query_every);
+        double none_match_p = pow(1 - pattern_p, patterns_per_segment);
+        double fpr = std::min(1 - none_match_p, 1.0);
+        return fpr;
     }
 
     /**
