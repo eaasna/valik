@@ -32,12 +32,9 @@ struct search_pattern
         return combinations(e, l);
     }
 
-    bool operator==(search_pattern const & other)
+    bool operator==(search_pattern const & other) const
     {
-        if ((e == other.e) && (l == other.l))
-            return true;
-        else
-            return false;
+        return ((e == other.e) && (l == other.l));
     }
 
     template <class Archive>
