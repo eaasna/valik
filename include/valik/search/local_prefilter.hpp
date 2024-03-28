@@ -18,23 +18,22 @@ namespace valik
  *
  * E.g if read_len = 150
  *        pattern_size = 50
- *        overlap = 20
+ *        query_every = 30
  *
  *        begin_positions = {0, 30, 60, 90, 100}
  *
  * @param read_len Length of query.
  * @param pattern_size Length of pattern.
- * @param overlap How much adjacent patterns overlap.
+ * @param query_every Every nth potential match is considered.
  * @param callback Functor that calls make_pattern_bounds and find_pattern_bins on each begin position.
  */
 template <typename functor_t>
-constexpr void pattern_begin_positions(size_t const read_len, uint64_t const pattern_size, uint64_t const overlap, functor_t && callback)
+constexpr void pattern_begin_positions(size_t const read_len, uint64_t const pattern_size, uint8_t const query_every, functor_t && callback)
 {
     assert(read_len >= pattern_size);
-    assert(pattern_size >= overlap);
 
     size_t last_begin{0u};
-    for (size_t i = 0; i <= read_len - pattern_size; i = i + pattern_size - overlap)
+    for (size_t i = 0; i <= read_len - pattern_size; i = i + query_every)
     {
         callback(i);
         last_begin = i;
@@ -42,7 +41,7 @@ constexpr void pattern_begin_positions(size_t const read_len, uint64_t const pat
 
     if (last_begin < read_len - pattern_size)
     {
-        // last pattern might have a smaller overlap to make sure the end of the read is covered
+        // last pattern might have a smaller overlap to make sure the end of the record is covered
         callback(read_len - pattern_size);
     }
 }
@@ -134,7 +133,7 @@ void find_pattern_bins(pattern_bounds const & pattern,
  * @param ibf Interleaved Bloom Filter of the reference database.
  * @param arguments Command line arguments.
  *                  arguments.pattern_size and arguments.error_rate define the minimum length and maximum error rate of a local match respectively.
- *                  arguments.overlap defines how many match locations are considered per record.
+ *                  arguments.query_every defines how many match locations are considered per record.
  * @param thresholder Threshold for the number of shared k-mers to constitute a likely local match.
  * @param result_cb Lambda that inserts the prefiltering results (record-bin pairs) into the shopping carts.
  */
@@ -201,7 +200,7 @@ void local_prefilter(
         minimiser.clear();
 
         std::unordered_set<size_t> sequence_hits{};
-        pattern_begin_positions(seq.size(), arguments.pattern_size, arguments.overlap, [&](size_t const begin)
+        pattern_begin_positions(seq.size(), arguments.pattern_size, arguments.query_every, [&](size_t const begin)
         {
             pattern_bounds const pattern = make_pattern_bounds(begin, arguments, window_span_begin, thresholder);
             find_pattern_bins(pattern, bin_count, counting_table, sequence_hits);

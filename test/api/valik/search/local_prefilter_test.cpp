@@ -11,12 +11,12 @@ TEST(pattern_begin_positions, read_length_and_pattern_size_are_equal)
     // edge case where read_len = pattern_size
     size_t const read_len = 150u;
     uint64_t const pattern_size = read_len;
-    uint64_t const overlap = 30u;
+    uint64_t const query_every = 120u;
 
     std::vector<size_t> begin_positions{};
     std::vector<size_t> expected{0u}; // pattern interval [0, 150]
 
-    valik::pattern_begin_positions(read_len, pattern_size, overlap, [&](size_t const begin)
+    valik::pattern_begin_positions(read_len, pattern_size, query_every, [&](size_t const begin)
     {
         begin_positions.push_back(begin);
     });
@@ -29,20 +29,20 @@ TEST(pattern_begin_positions, overlaps_are_evenly)
     // special case where read_len - pattern_size is exactly the last possible begin position
     size_t const read_len = 150u;
     uint64_t const pattern_size = 50u;
-    uint64_t const overlap = 30u;
+    uint64_t const query_every = 20u;
 
     std::vector<size_t> begin_positions{};
     std::vector<size_t> expected = {
         0u, // pattern interval [0, 50]
-        0u + pattern_size - overlap /* 20u */, // pattern interval [20, 70]
-        20u + pattern_size - overlap /* 40u */, // pattern interval [40, 90]
+        0u + query_every /* 20u */, // pattern interval [20, 70]
+        20u + query_every /* 40u */, // pattern interval [40, 90]
         60u, // pattern interval [60, 110]
         80u, // pattern interval [80, 130]
         // pattern interval [100, 150]
         100u // ends here, because read_len - pattern_size = 100u
     };
 
-    valik::pattern_begin_positions(read_len, pattern_size, overlap, [&](size_t const begin)
+    valik::pattern_begin_positions(read_len, pattern_size, query_every, [&](size_t const begin)
     {
         begin_positions.push_back(begin);
     });
@@ -55,19 +55,19 @@ TEST(pattern_begin_positions, extra_overlap)
     // normal case where read_len - pattern_size has room for an additional element
     size_t const read_len = 150;
     uint64_t const pattern_size = 50;
-    uint64_t const overlap = 20;
+    uint64_t const query_every = 30;
 
     std::vector<size_t> begin_positions{};
     std::vector<size_t> expected = {
         0u, // pattern interval [0, 50]
-        0u + pattern_size - overlap /* 30u */, // pattern interval [30, 80]
-        30u + pattern_size - overlap /* 60u */, // pattern interval [60, 110]
+        0u + query_every /* 30u */, // pattern interval [30, 80]
+        30u + query_every /* 60u */, // pattern interval [60, 110]
         90u, // pattern interval [90, 140]
         // pattern interval [100, 150]
         100u // ends here, because read_len - pattern_size = 110u
     };
 
-    valik::pattern_begin_positions(read_len, pattern_size, overlap, [&](size_t const begin)
+    valik::pattern_begin_positions(read_len, pattern_size, query_every, [&](size_t const begin)
     {
         begin_positions.push_back(begin);
     });

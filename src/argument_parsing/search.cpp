@@ -23,6 +23,10 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       .description = "Provide a path to the query file.",
                       .required = true,
                       .validator = sharg::input_file_validator{{"fasta", "fa", "fq", "fastq"}}});
+    parser.add_flag(arguments.split_query,
+                    sharg::config{.short_id = '\0',
+                    .long_id = "split-query",
+                    .description = "Split a long query into segments."});
     parser.add_option(arguments.out_file,
                       sharg::config{.short_id = '\0',
                       .long_id = "output",
@@ -42,10 +46,6 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       sharg::config{.short_id = '\0',
                       .long_id = "fast",
                       .description = "Execute the search in fast mode when few false negatives can be tolerated."});
-    parser.add_flag(arguments.compressed,
-                    sharg::config{.short_id = '\0',
-                    .long_id = "compressed",
-                    .description = "Build a compressed IBF."});
     parser.add_flag(arguments.write_time,
                     sharg::config{.short_id = '\0',
                     .long_id = "time",
@@ -61,11 +61,6 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                     .long_id = "ref-meta",
                     .description = "Path to reference metadata file created by split.",
                     .validator = sharg::input_file_validator{}});
-    parser.add_option(arguments.query_meta_path,
-                    sharg::config{.short_id = '\0',
-                    .long_id = "query-meta",
-                    .description = "Path to query genome metadata for finding all local alignment between two long sequences.",
-                    .validator = sharg::input_file_validator{}});
     parser.add_flag(arguments.distribute,
                     sharg::config{.short_id = '\0',
                     .long_id = "distribute",
@@ -79,6 +74,16 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
     /////////////////////////////////////////
     // Advanced options
     /////////////////////////////////////////
+    parser.add_flag(arguments.manual_parameters,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "without-parameter-tuning",
+                      .description = "Preprocess database without setting default parameters.",
+                      .advanced = true});
+    parser.add_option(arguments.seg_count_in,
+                      sharg::config{.short_id = 'n',
+                      .long_id = "seg-count",
+                      .description = "The suggested number of database segments that might be adjusted by the split algorithm.",
+                      .validator = positive_integer_validator{false}});
     parser.add_option(arguments.threshold,
                       sharg::config{.short_id = '\0',
                       .long_id = "threshold",
@@ -106,21 +111,21 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       .description = "Used in the dynamic thresholding. The higher p_max, the lower the threshold.",
                       .advanced = true,
                       .validator = sharg::arithmetic_range_validator{0, 1}});
-    parser.add_option(arguments.overlap,
+    parser.add_option(arguments.query_every,
                       sharg::config{.short_id = '\0',
-                      .long_id = "overlap",
+                      .long_id = "query-every",
                       .description = "Choose how much sequential patterns overlap. "
                                      "This determines how many potential matches are skipped in prefiltering."
-                                     "(pattern_size - 1) considers all potential matches.", 
+                                     "--query-every 1 considers all potential matches.", 
                       .advanced = true});
     parser.add_option(arguments.cart_max_capacity,
                     sharg::config{.short_id = '\0',
-                    .long_id = "cart_max_capacity",
+                    .long_id = "cart-max-capacity",
                     .description = "Number of elements to be stored in a single cart before it is sent for processing.", 
                     .advanced = true});
     parser.add_option(arguments.max_queued_carts,
                     sharg::config{.short_id = '\0',
-                    .long_id = "max_queued_carts",
+                    .long_id = "max-queued-carts",
                     .description = "Maximal number of carts that are full and are waiting to be processed.",
                     .advanced = true});
     parser.add_option(arguments.disableThresh,
@@ -170,7 +175,7 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                     .advanced = true,
                     .validator = sharg::value_list_validator{"exact", "bestLocal", "bandedGlobal", "bandedGlobalExtend"}});
     parser.add_option(arguments.numMatches,
-                    sharg::config{.short_id = 'n',
+                    sharg::config{.short_id = '\0',
                     .long_id = "numMatches",
                     .description = "STELLAR: Maximal number of kept matches per query and database." 
                                    "If STELLAR finds more matches, only the longest ones are kept.",
@@ -185,12 +190,35 @@ void run_search(sharg::parser & parser)
 
     try_parsing(parser);
 
-    arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);
+    if (arguments.manual_parameters && !parser.is_option_set("ref-meta") && arguments.split_query)
+    {
+        if (!parser.is_option_set("pattern") || !parser.is_option_set("seg-count"))
+            throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
+    }
 
     // ==========================================
-    // Various checks.
+    // Process --seg-count.
     // ==========================================
+    if (parser.is_option_set("seg-count"))
+    {
+        if (!arguments.manual_parameters)
+        {
+            std::cerr << "WARNING: segment count will be adjusted to match database metadata. "
+                      << "Set --without-parameter-tuning to force manual input.\n"; 
+        }
+    }
+    else
+    {
+        if (arguments.split_query && arguments.manual_parameters)
+        {
+            throw std::runtime_error{"Provide the chosen number of query segments with --seg-count "
+                                     "or remove --without-parameter-tuning to deduce an optimal value from reference metadata."};
+        }
+    }
 
+    // ==========================================
+    // Checking advanced Stellar parameters.
+    // ==========================================
     sharg::input_file_validator{}(arguments.query_file);
     if (parser.is_option_set("disableThresh") && parser.is_option_set("numMatches"))
     {
@@ -198,7 +226,11 @@ void run_search(sharg::parser & parser)
             throw sharg::validation_error{"Disabling verification for queries with disableThresh=" + std::to_string(arguments.disableThresh) + 
                                           " or more matches.\n The threshold for maximum numer of matches per query numMatches=" + std::to_string(arguments.numMatches) + 
                                           " can not be larger."};
-    }    
+    }
+
+    if (arguments.numMatches > arguments.compactThresh)
+        throw sharg::validation_error{"Invalid parameter values: Please choose numMatches <= sortThresh.\n"};
+
 
     // ==========================================
     // Read window and kmer size, and the bin paths.
@@ -221,75 +253,108 @@ void run_search(sharg::parser & parser)
     // ==========================================
     if (parser.is_option_set("pattern"))
     {
-        if (arguments.pattern_size < arguments.window_size)
-            throw sharg::validation_error{"The minimiser window cannot be bigger than the pattern."};
+        if (!arguments.manual_parameters)
+        {
+            std::cerr << "WARNING: pattern size (minimum match length) will be adjusted to match database metadata. "
+                      << "Set --without-parameter-tuning to force manual input.\n"; 
+        }
+        else
+        {
+            if (arguments.pattern_size < arguments.window_size)
+                throw sharg::validation_error{"The minimiser window cannot be bigger than the pattern."};
+        }
+    }
+    else
+    {
+        if (arguments.manual_parameters)
+            throw sharg::validation_error{"Input --pattern size or deduce parameter by providing --ref-meta."};
     }
 
+    arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);
+    
     // ==========================================
-    // Set default pattern size.
+    // Process manual threshold.
     // ==========================================
-    if (!arguments.pattern_size)
+    if (parser.is_option_set("threshold"))
     {
-        seqan3::sequence_file_input<dna4_traits, seqan3::fields<seqan3::field::seq>> query_in{arguments.query_file};
-        for (auto & [seq] : query_in | std::views::take(1))
+        if (!arguments.manual_parameters)
         {
-            arguments.pattern_size = std::ranges::size(seq) / 2;
+            std::cerr << "WARNING: threshold will be adjusted to parameters in reference metadata. " << 
+                         "Add --without-parameter-tuning to force manual input\n.";
+        }
+        else
+        {
+            arguments.threshold_was_set = true;
+            arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
         }
     }
 
     // ==========================================
-    // Parameter deduction
+    // Process reference metadata path.
     // ==========================================
-    if (kmer_lemma_threshold(arguments.pattern_size, (size_t) arguments.shape_size, (size_t) arguments.errors) <= 1)
+    if (parser.is_option_set("ref-meta"))
     {
-        //!TODO: read in parameter metadata file
-        arguments.threshold_was_set = true;
-    }
-
-    // ==========================================
-    // Process --threshold.
-    // ==========================================
-    if (arguments.threshold_was_set || parser.is_option_set("threshold"))
-    {
-        arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
-        if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
-            throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
-        arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
-    }
-
-    // ==========================================
-    // Create temporary file path for merging distributed Stellar runs.
-    // ==========================================
-    if (!arguments.ref_meta_path.empty())
-    {
+        // Create temporary file path for merging parallel Stellar runs.
         arguments.all_matches = arguments.out_file;
         arguments.all_matches += ".preliminary";
     }
+    else
+    {
+        if (arguments.split_query && !arguments.manual_parameters)
+        {
+            throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
+        }
+    }
 
     // ==========================================
-    // Check for split metadata.
+    // Extract data from reference metadata.
     // ==========================================
-    if (!arguments.distribute && arguments.ref_meta_path.empty())
-        throw std::runtime_error("Provide --ref-meta to search a single genome or launch a --distribute run to search multiple reference files instead.");
+    if (!arguments.manual_parameters)
+    {
+        if (!parser.is_option_set("ref-meta"))
+            throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
+
+        std::filesystem::path search_profile_file{arguments.ref_meta_path};
+        search_profile_file.replace_extension("arg");
+        sharg::input_file_validator argument_input_validator{{"arg"}};
+        argument_input_validator(search_profile_file);
+        search_kmer_profile search_profile{search_profile_file};
+        arguments.pattern_size = search_profile.l;
+        arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
+        search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
+        // seg_count is inferred in metadata constructor
+        arguments.search_type = error_profile.search_type;
+        if (arguments.search_type == STELLAR)
+        {
+            std::cout << "Can not prefilter matches of length " << std::to_string(error_profile.pattern.l) << 
+                                     " with " << std::to_string(error_profile.pattern.e) << " errors. Searching without prefiltering.\n";
+            arguments.fnr = 0.0;
+        }
+        else
+        {
+            arguments.max_segment_len = error_profile.max_segment_len;
+            arguments.threshold = error_profile.params.t;
+            arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
+            if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
+                throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
+            arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
+            arguments.fnr = error_profile.fnr;
+        }
+    }
 
     // ==========================================
     // More checks.
     // ==========================================
-    if (parser.is_option_set("overlap"))
+    if (parser.is_option_set("query-every"))
     {
-        if (arguments.overlap >= arguments.pattern_size)
-                throw sharg::validation_error{"The overlap size has to be smaller than the pattern size."};
+        if (arguments.query_every > arguments.pattern_size)
+            throw sharg::validation_error("Reduce --query-every so that all positions in the query would be considered at least once."); 
     }
     else
     {
         if (arguments.fast)
-            arguments.overlap = arguments.pattern_size - 2;
-        else 
-            arguments.overlap = arguments.pattern_size - 1;
+            arguments.query_every = 3;
     }
-
-    if (arguments.numMatches > arguments.compactThresh)
-        throw sharg::validation_error{"Invalid parameter values: Please choose numMatches <= sortThresh.\n"};
 
     // ==========================================
     // Set strict thresholding parameters for fast mode.
@@ -299,7 +364,7 @@ void run_search(sharg::parser & parser)
 
     if (!parser.is_option_set("p_max") && arguments.fast)
         arguments.p_max = 0.05;
-
+    
     // ==========================================
     // Dispatch
     // ==========================================

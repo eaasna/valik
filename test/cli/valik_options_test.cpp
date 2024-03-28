@@ -7,6 +7,7 @@
 seqan3::test::create_temporary_snippet_file tmp_ibf_file{"tmp.ibf", "\nsome_content"};
 seqan3::test::create_temporary_snippet_file dummy_sequence_file{"dummy.fasta", "\nACGTC"};
 seqan3::test::create_temporary_snippet_file tmp_bin_list_file{"all_bins.txt", std::string{"\n"} + dummy_sequence_file.file_path.string()};
+seqan3::test::create_temporary_snippet_file meta_file{"meta.bin", std::string{"\n"}};
 
 #include "cli_test.hpp"
 
@@ -132,7 +133,7 @@ TEST_F(argparse_build, input_missing)
                                                          "--output ./ibf.out");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{"[Error] Not enough positional arguments provided (Need at least 1). See -h/--help for more information.\n"});
+    EXPECT_EQ(result.err, std::string{"[Error] Option --ref-meta is required but not set.\n"});
 }
 
 TEST_F(argparse_build, input_invalid)
@@ -140,17 +141,17 @@ TEST_F(argparse_build, input_invalid)
     cli_test_result const result = execute_app("valik", "build",
                                                          "--size 8m",
                                                          "--output ./ibf.out",
-                                                         "nonexistent");
+                                                         "--ref-meta nonexistent");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{"[Error] Validation failed for positional option 1: The file \"nonexistent\" does not exist!\n"});
+    EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option --ref-meta: The file \"nonexistent\" does not exist!\n"});
 }
 
 TEST_F(argparse_build, output_missing)
 {
     cli_test_result const result = execute_app("valik", "build",
                                                          "--size 8m",
-                                                         tmp_bin_list_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path);
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] Option --output is required but not set.\n"});
@@ -161,20 +162,10 @@ TEST_F(argparse_build, output_wrong)
     cli_test_result const result = execute_app("valik", "build",
                                                          "--size 8m",
                                                          "--output foo/out.ibf",
-                                                         tmp_bin_list_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path);
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option --output: Cannot write \"foo/out.ibf\"!\n"});
-}
-
-TEST_F(argparse_build, size_missing)
-{
-    cli_test_result const result = execute_app("valik", "build",
-                                                         "--output ./ibf.out",
-                                                         tmp_bin_list_file.file_path);
-    EXPECT_NE(result.exit_code, 0);
-    EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{"[Error] Option --size is required but not set.\n"});
 }
 
 TEST_F(argparse_build, size_wrong_space)
@@ -182,7 +173,7 @@ TEST_F(argparse_build, size_wrong_space)
     cli_test_result const result = execute_app("valik", "build",
                                                          "--size 8 m",
                                                          "--output ./ibf.out",
-                                                         tmp_bin_list_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path);
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option --size: Value 8 must be an integer "
@@ -194,7 +185,7 @@ TEST_F(argparse_build, size_wrong_suffix)
     cli_test_result const result = execute_app("valik", "build",
                                                          "--size 8x",
                                                          "--output ibf.out",
-                                                         tmp_bin_list_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path);
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option --size: Value 8x must be an integer "
@@ -208,7 +199,8 @@ TEST_F(argparse_build, kmer_window)
                                                          "--window 19",
                                                          "--size 8m",
                                                          "--output ibf.out",
-                                                         tmp_bin_list_file.file_path);
+                                                         "--ref-meta ", meta_file.file_path, 
+                                                         "--without-parameter-tuning");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] The k-mer size cannot be bigger than the window size.\n"});
@@ -286,7 +278,8 @@ TEST_F(argparse_search, pattern_window)
                                                          "--query ", data("query.fq"),
                                                          "--index ", data("8bins19window.ibf"),
                                                          "--output search.gff",
-                                                         "--pattern 12");
+                                                         "--pattern 12",
+                                                         "--without-parameter-tuning");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] The minimiser window cannot be bigger than the pattern.\n"});
@@ -304,16 +297,15 @@ TEST_F(argparse_search, incorrect_error_rate)
     EXPECT_EQ(result.err, std::string{"[Error] Validation failed for option -e/--error-rate: Value 0.110000 is not in range [0.000000,0.100000].\n"});
 }
 
-TEST_F(argparse_search, not_dist_no_meta)
+TEST_F(argparse_search, not_manual_no_meta)
 {
     cli_test_result const result = execute_app("valik", "search",
                                                          "--query ", data("query.fq"),
                                                          "--index ", data("8bins19window.ibf"),
-                                                         "--output search.gff",
-                                                         "--pattern 100");
+                                                         "--output search.gff");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, std::string{"[Error] Provide --ref-meta to search a single genome or launch a --distribute run to search multiple reference files instead.\n"});
+    EXPECT_EQ(result.err, std::string{"[Error] Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.\n"});
 }
 
 TEST_F(argparse_search, shared_mem_metagenome)
@@ -322,8 +314,9 @@ TEST_F(argparse_search, shared_mem_metagenome)
                                                          "--query ", data("query.fq"),
                                                          "--index ", data("8bins19window.ibf"),
                                                          "--output search.gff",
-                                                         "--ref-meta ", data("150overlap4bins.txt"),
-                                                         "--pattern 100");
+                                                         "--ref-meta ", data("150overlap4bins.bin"),
+                                                         "--pattern 100",
+                                                         "--without-parameter-tuning");
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[Error] Multiple reference files can not be searched in shared memory mode. "

@@ -3,6 +3,7 @@
 #include <valik/argument_parsing/shared.hpp>
 #include <valik/build/build.hpp>
 #include <valik/split/metadata.hpp>
+#include <utilities/prepare/compute_bin_size.hpp>
 
 namespace valik::app
 {

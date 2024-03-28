@@ -11,6 +11,29 @@ export VALIK_TMP=tmp/valik/my_dir
 export VALIK_STELLAR=echo
 export VALIK_MERGE=echo
 
+execs=(valik stellar)
+for exec in "${execs[@]}"; do
+    if ! which ${exec} &>/dev/null; then
+        echo "${exec} is not available"
+        echo ""
+        echo "make sure \"${execs[@]}\" are reachable via the \${PATH} variable"
+        echo ""
+
+        # trying to do some guessing here:
+        paths=(../../build/bin)
+        paths+=(../../../stellar3/build/bin)
+
+        p=""
+        for pp in ${paths[@]}; do
+            p=${p}$(realpath -m $pp):
+        done
+        echo "you could try "
+        echo "export PATH=${p}\${PATH}"
+
+        exit 127
+    fi
+done
+
 echo "### Running valik split ###"
 ./split/cli_test_output.sh
 

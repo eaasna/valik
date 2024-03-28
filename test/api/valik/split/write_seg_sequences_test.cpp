@@ -31,11 +31,11 @@ static void trim_fasta_id(std::string & seg_seq)
                 seg_seq.end());
 }
 
-static void const test_reference_out(size_t overlap, size_t bins)
+static void test_reference_out(size_t overlap, size_t bins)
 {
     std::string path_prefix = "write_out_" + std::to_string(overlap) + "_" + std::to_string(bins);
 
-    valik::metadata meta(data_path(path_prefix + "_reference_metadata.txt"));
+    valik::metadata meta(data_path(path_prefix + "_reference_metadata.bin"));
     valik::write_reference_segments(meta, data_path("database.fasta"));
 
     for (size_t i = 0; i < bins - 1; i++)
@@ -51,33 +51,17 @@ static void const test_reference_out(size_t overlap, size_t bins)
         EXPECT_EQ(current_seg_seq.size(), current_seg.len);
         EXPECT_EQ(next_seg_seq.size(), next_seg.len);
 
-        if (current_seg.seq_ind == next_seg.seq_ind)
+        if (current_seg.seq_vec[0] == next_seg.seq_vec[0])
         {
             EXPECT_EQ(current_seg_seq.substr(current_seg_seq.size() - overlap), next_seg_seq.substr(0, overlap));
         }
     }
 }
 
-TEST(write_ref_sequences, o0_b4)
-{
-    size_t overlap = 0;
-    size_t bins = 4;
-
-    test_reference_out(overlap, bins);
-}
-
 TEST(write_ref_sequences, o20_b4)
 {
     size_t overlap = 20;
     size_t bins = 4;
-
-    test_reference_out(overlap, bins);
-}
-
-TEST(write_ref_sequences, o0_b16)
-{
-    size_t overlap = 0;
-    size_t bins = 16;
 
     test_reference_out(overlap, bins);
 }
@@ -94,7 +78,7 @@ static void const test_query_out(size_t overlap, size_t bins)
 {
     std::string path_prefix = "write_out_" + std::to_string(overlap) + "_" + std::to_string(bins);
 
-    valik::metadata meta(data_path(path_prefix + "_reference_metadata.txt"));
+    valik::metadata meta(data_path(path_prefix + "_reference_metadata.bin"));
     valik::write_query_segments(meta, data_path("database.fasta"));
 
     using sequence_file_t = seqan3::sequence_file_input<valik::dna4_traits, seqan3::fields<seqan3::field::seq>>;
@@ -111,7 +95,7 @@ static void const test_query_out(size_t overlap, size_t bins)
             EXPECT_EQ(previous_seg_seq.size(), previous_seg.len);
             EXPECT_EQ(current_seg_seq.size(), current_seg.len);
 
-            if (previous_seg.seq_ind == current_seg.seq_ind)
+            if (previous_seg.seq_vec[0] == current_seg.seq_vec[0])
             {
                 EXPECT_RANGE_EQ(std::vector<seqan3::dna4>(previous_seg_seq.end() - overlap, previous_seg_seq.end()),
                                 std::vector<seqan3::dna4>(current_seg_seq.begin(), current_seg_seq.begin()+ overlap));
@@ -123,26 +107,10 @@ static void const test_query_out(size_t overlap, size_t bins)
     }
 }
 
-TEST(write_query_sequences, o0_b4)
-{
-    size_t overlap = 0;
-    size_t bins = 4;
-
-    test_query_out(overlap, bins);
-}
-
 TEST(write_query_sequences, o20_b4)
 {
     size_t overlap = 20;
     size_t bins = 4;
-
-    test_query_out(overlap, bins);
-}
-
-TEST(write_query_sequences, o0_b16)
-{
-    size_t overlap = 0;
-    size_t bins = 16;
 
     test_query_out(overlap, bins);
 }

@@ -30,10 +30,16 @@ void runtime_to_compile_time(func_t const & func, bool b1, bs_t... bs)
  * @tparam compressed Interleaved Bloom Filter layout type.
  * @param arguments Command line arguments.
  */
-void valik_search(search_arguments const & arguments)
+void valik_search(search_arguments & arguments)
 {
-
     search_time_statistics time_statistics{};
+    
+    if (arguments.verbose)
+    {
+        std::cout << "\n-----------Local match definition-----------\n";
+        std::cout << "min length " << arguments.pattern_size << "bp\n";
+        std::cout << "max error rate " << arguments.error_rate << '\n';
+    }
 
     bool failed;
     if (arguments.distribute)
@@ -46,15 +52,15 @@ void valik_search(search_arguments const & arguments)
     // Shared memory execution
     else
     {
-        runtime_to_compile_time([&]<bool is_compressed, bool is_split>()
+        runtime_to_compile_time([&]<bool is_compressed, bool is_split, bool stellar_only>()
         {
-            failed = search_local<is_compressed, is_split>(arguments, time_statistics);
-        }, arguments.compressed, !arguments.query_meta_path.empty());
+            failed = search_local<is_compressed, is_split, stellar_only>(arguments, time_statistics);
+        }, arguments.compressed, arguments.split_query, (arguments.search_type == STELLAR));
     }
 
     // Consolidate matches (not necessary when searching a metagenomic database)
     auto start = std::chrono::high_resolution_clock::now();
-    if (!arguments.ref_meta_path.empty())
+    if (arguments.bin_path.size() == 1)
     {
         consolidate_matches(arguments);
         const bool error_in_delete = !std::filesystem::remove(arguments.all_matches);

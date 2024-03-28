@@ -11,51 +11,40 @@ mkdir -p $VALIK_TMP
 
 #----------- Index and search the reference genome -----------
 
-# Split parameters
-seg_overlap="150"     # how much adjacent segments overlap
-
-# Build parameters
-k=13
-ibf_size="32k"
-
-# Search parameters
 pattern=50            # min local match length
-pat_overlap=49        # how much adjacent patterns overlap
 
+ibf_size="32k"
 ref_input="ref.fasta"
 query="query.fasta"
 
-valik split "$query" --pattern 50 --seg-count 60 --out query_seg_meta.txt --without-parameter-tuning
+max_errors=2
+max_er=$(echo $max_errors/$pattern | bc -l)
+meta="meta_param_deduction.bin"
+valik split "$ref_input" --pattern "$pattern" --out "$meta" --error-rate "$max_er"
 
-e=1
-er=$(echo $e/$pattern | bc -l)
-for b in 4 16
+echo "Creating IBF for max_er=$max_er and pattern=$pattern"
+index=$max_errors"error_"$pattern"pattern_index.ibf"
+valik build --size "$ibf_size" --output "$index" --ref-meta "$meta"
+
+for e in 1 2
 do
-    echo "Splitting the genome into $b segments that overlap by $seg_overlap"
-    seg_meta="seg_meta"$seg_overlap"overlap"$b"bins.txt"
-    valik split "$ref_input" --pattern "$seg_overlap" --seg-count "$b" --out "$seg_meta" --without-parameter-tuning
+    er=$(echo $e/$pattern | bc -l)  # error rate
 
-    for w in 13 15
-    do
-        echo "Creating IBF for w=$w and k=$k where segments overlap by $seg_overlap"
-        index=$b"bins"$w"window.ibf"
-        valik build "$ref_input" --kmer "$k" --window "$w" --size "$ibf_size" --output "$index" --ref-meta "$seg_meta"
+    echo "Searching IBF with error rate $er"
+    dist_out=$e"error.gff"
+    valik search --distribute --index "$index" --query "$query" --output "$dist_out" --error-rate "$er" \
+                 --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
+    #local_out=$e"error.gff"
+    #valik search --index "$index" --query "$query" --output "$local_out" --error-rate "$er" \
+    #             --ref-meta "$meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
 
-        echo "Searching IBF with $e errors"
-        dist_out=$b"bins"$w"window"$e"error.gff"
-        #local_out="local"$b"bins"$w"window"$e"error.gff"
-        valik search --distribute --index "$index" --query "$query" --output "$dist_out" --error-rate "$er" --pattern "$pattern" --overlap "$pat_overlap" \
-                     --ref-meta "$seg_meta" --repeatPeriod 1 --repeatLength 10 --numMatches 2
-        #valik search --index "$index" --query "$query" --output "$local_out" --error-rate "$er" --pattern "$pattern" --overlap "$pat_overlap" \
-        #             --ref-meta "$seg_meta" --repeatPeriod 1 --repeatLength 10 --numMatches 1
+    rm $VALIK_TMP/*
 
-        rm $VALIK_TMP/*
-	rm $index
-	done
+    stellar_out=$e"error_stellar.gff"
+    stellar $ref_input $query -e $er -l $pattern -o $stellar_out --repeatPeriod 1 --repeatLength 10 --numMatches 2 &> /dev/null
+    rm stellar.disabled.fasta
 done
 
-stellar_out="stellar.gff"
-stellar $ref_input $query -e $er -l $pattern -o $stellar_out --repeatPeriod 1 --repeatLength 10 --numMatches 2 &> /dev/null
-rm stellar.disabled.fasta
-
+rm $index
+#rm $meta
 rm -r $VALIK_TMP

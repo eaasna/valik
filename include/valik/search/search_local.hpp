@@ -9,6 +9,8 @@
 #include <valik/split/metadata.hpp>
 #include <utilities/cart_queue.hpp>
 #include <utilities/consolidate/merge_processes.hpp>
+#include <utilities/threshold/search_kmer_profile.hpp>
+#include <utilities/threshold/filtering_request.hpp>
 
 #include <stellar/database_id_map.hpp>
 #include <stellar/diagnostics/print.tpp>
@@ -30,8 +32,8 @@ namespace valik::app
  * @param time_statistics Run-time statistics.
  * @return false if search failed.
  */
-template <bool compressed, bool is_split>
-bool search_local(search_arguments const & arguments, search_time_statistics & time_statistics)
+template <bool compressed, bool is_split, bool stellar_only>
+bool search_local(search_arguments & arguments, search_time_statistics & time_statistics)
 {
     using index_structure_t = std::conditional_t<compressed, index_structure::ibf_compressed, index_structure::ibf>;
     auto index = valik_index<index_structure_t>{};
@@ -43,15 +45,64 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
         time_statistics.index_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
     }
 
+    if (arguments.max_queued_carts == std::numeric_limits<uint32_t>::max()) // if no user input
+        arguments.max_queued_carts = index.ibf().bin_count();
+
     metadata ref_meta = metadata(arguments.ref_meta_path);
     env_var_pack var_pack{};
-
     std::optional<metadata> query_meta;
-    if (!arguments.query_meta_path.empty())
-        query_meta = metadata(arguments.query_meta_path);
+    if (arguments.split_query && !stellar_only)
+    {
+        query_meta = metadata(arguments);
+        if (arguments.verbose)
+        {
+            std::cout << "\n-----------Preprocessing queries-----------\n";
+            std::cout << "database size " << query_meta.value().total_len << "bp\n";
+            std::cout << "segment count " << query_meta.value().seg_count << '\n';
+            std::cout << "segment len " << std::to_string((uint64_t) std::round(query_meta.value().total_len / 
+                                                         (double) query_meta.value().seg_count)) << "bp\n";
+        }
+
+        if (!arguments.manual_parameters)
+        {
+            //!TODO: search profile is processed twice
+            // 1. extract parameters pattern_size, max_segment_len, (<- needed before query split) and threshold
+            // 2. access FNR after linear scan of sequences
+            std::filesystem::path search_profile_file{arguments.ref_meta_path};
+            search_profile_file.replace_extension("arg");
+            search_kmer_profile search_profile{search_profile_file};
+            search_error_profile error_thresh = search_profile.get_error_profile(arguments.errors);     
+
+            search_pattern pattern(arguments.errors, arguments.pattern_size);
+            param_space space;
+            param_set params(arguments.shape_size, arguments.threshold, space);
+            filtering_request request(pattern, ref_meta, query_meta.value());
+            if ((request.fpr(params) > 0.2) && (arguments.search_type != STELLAR))
+                std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
+
+            if (arguments.verbose)
+            {
+                std::cout.precision(3);
+
+                std::cout << "\n-----------Search parameters-----------\n";
+                std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
+                switch (arguments.search_type)
+                {
+                    case HEURISTIC: std::cout << "heuristic "; break;
+                    case LEMMA: std::cout << "k-mer lemma "; break;
+                }
+                std::cout << "threshold ";
+                std::cout << std::to_string(arguments.threshold) << '\n';
+
+                std::cout << "FNR " << arguments.fnr << '\n';
+                std::cout << "FPR " << request.fpr(params) << '\n';
+            }
+        }
+    }
 
     using TAlphabet = seqan2::Dna;
     using TSequence = seqan2::String<TAlphabet>;
+    // the queue hands records over from the producer threads (valik prefiltering) to the consumer threads (stellar search) 
     auto queue = cart_queue<shared_query_record<TSequence>>{index.ibf().bin_count(), arguments.cart_max_capacity, arguments.max_queued_carts};
 
     std::mutex mutex;
@@ -87,6 +138,7 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
     bool const databasesSuccess = input_databases_time.measure_time([&]()
     {
         std::cout << "Launching stellar search on a shared memory machine...\n";
+        //!TODO: allow metagenome database
         return stellar::_importAllSequences(bin_paths[0][0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
     });
     if (!databasesSuccess)
@@ -133,16 +185,12 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
                 threadOptions.referenceLength = refLen;
                 threadOptions.searchSegment = true;
                 auto seg = ref_meta.segment_from_bin(bin_id);
-                threadOptions.binSequences.emplace_back(seg.seq_ind);
+                //!TODO: deal with metagenome database
+                threadOptions.binSequences.emplace_back(seg.seq_vec[0]);
                 threadOptions.segmentBegin = seg.start;
                 threadOptions.segmentEnd = seg.start + seg.len;
-
-                // ==========================================
-                //!WORKAROUND: Stellar does not allow smaller error rates
-                // ==========================================
-                threadOptions.numEpsilon = std::max(arguments.error_rate, (float) 0.00001);
-                threadOptions.epsilon = stellar::utils::fraction::from_double(threadOptions.numEpsilon).limit_denominator();
                 threadOptions.minLength = arguments.pattern_size;
+                threadOptions.epsilon = stellar::utils::fraction::from_double_with_limit(arguments.error_rate, arguments.pattern_size).limit_denominator();
                 threadOptions.outputFile = cart_queries_path.string() + ".gff";
                 
                 {
@@ -321,14 +369,15 @@ bool search_local(search_arguments const & arguments, search_time_statistics & t
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    if constexpr (is_split)
+    //!TODO: do not make thresholder if search_kind == STELLAR 
+    raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
+    // producer threads are created here
+    if constexpr (is_split && !stellar_only)
     {
-        raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
-        iterate_split_queries(arguments, index.ibf(), thresholder, queue, *query_meta);
+        iterate_split_queries(arguments, index.ibf(), thresholder, queue, query_meta.value());
     }
     else
     {
-        raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
         iterate_short_queries(arguments, index.ibf(), thresholder, queue);
     }
 

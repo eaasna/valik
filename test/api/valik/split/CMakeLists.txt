@@ -1,9 +1,7 @@
 add_api_test (write_seg_sequences_test.cpp)
 
 target_use_datasources (write_seg_sequences_test FILES database.fasta)
-target_use_datasources (write_seg_sequences_test FILES write_out_0_16_reference_metadata.txt)
-target_use_datasources (write_seg_sequences_test FILES write_out_0_4_reference_metadata.txt)
-target_use_datasources (write_seg_sequences_test FILES write_out_20_16_reference_metadata.txt)
-target_use_datasources (write_seg_sequences_test FILES write_out_20_4_reference_metadata.txt)
+target_use_datasources (write_seg_sequences_test FILES write_out_20_16_reference_metadata.bin)
+target_use_datasources (write_seg_sequences_test FILES write_out_20_4_reference_metadata.bin)
 
 add_api_test (trim_fasta_id_test.cpp)

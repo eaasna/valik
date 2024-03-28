@@ -27,7 +27,7 @@ bool merge_processes(search_arguments const & arguments,
     external_process merge(merge_process_args);
 
     std::filesystem::path merge_out_path;
-    if (arguments.ref_meta_path.empty())
+    if (arguments.bin_path.size() > 1)  // no need to consolidate metagenome search
         merge_out_path = arguments.out_file;
     else
         merge_out_path = arguments.all_matches;

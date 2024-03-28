@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <vector>
 
+#include <utilities/threshold/basics.hpp>
+
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/search/kmer_index/shape.hpp>
@@ -27,8 +29,9 @@ constexpr static uint64_t adjust_seed(uint8_t const kmer_size, uint64_t const se
  */
 constexpr static size_t adjust_bin_count(size_t const & n)
 {
+    if (n == std::numeric_limits<uint32_t>::max())
+        return 64u;
     int remainder = n % 64;
-
     if (remainder == 0)
         return n;
     else if (remainder < 32)
@@ -55,19 +58,21 @@ struct dna4_traits : seqan3::sequence_file_input_default_traits_dna
 
 struct split_arguments
 {
-    std::filesystem::path seq_file{};
-    std::filesystem::path meta_out{"metadata.txt"};
+    std::vector<std::vector<std::string>> bin_path{};
+    std::filesystem::path db_file{};
+    std::filesystem::path meta_out{"metadata.bin"};
 
     size_t pattern_size{150};
     uint32_t seg_count{64};
-    uint32_t seg_count_in{64};
-    bool split_index{false};
+    uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
     float error_rate{0.05};
     uint8_t errors{0};
     uint8_t kmer_size{20};
     size_t threshold{};
+    bool metagenome{false};
     std::filesystem::path ref_meta_path{};
     bool write_out{false};
+    bool split_query{false};
     bool only_split{false};
     bool verbose{false};
 };
@@ -81,14 +86,20 @@ struct build_arguments
     uint8_t threads{1u};
 
     std::vector<std::vector<std::string>> bin_path{};
-    std::filesystem::path bin_file{};
-    std::filesystem::path out_path{"./"};
+    std::filesystem::path out_path;
+    std::filesystem::path out_dir{"./"};
+    float fpr{0.05};
     std::string size{};
     uint64_t bins{64};
     uint64_t bits{4096};
     uint64_t hash{2};
     bool compressed{false};
     bool fast{false};
+    bool manual_parameters{false};
+    bool input_is_minimiser{false};
+
+    bool kmer_count_cutoff{false};
+    bool use_filesize_dependent_cutoff{false};
 
     std::filesystem::path ref_meta_path{};
 };
@@ -117,7 +128,29 @@ struct minimiser_threshold_arguments
 
 inline minimiser_threshold_arguments::~minimiser_threshold_arguments() = default;
 
-struct search_arguments final : public minimiser_threshold_arguments, public stellar::StellarOptions
+struct search_profile_arguments
+{
+    virtual ~search_profile_arguments() = 0;   // make an abstract base struct
+
+    //!TODO: deduce this automatically
+    bool split_query{false}; 
+    bool manual_parameters{false};
+    //!TODO: make fourth option: MINIMISER
+    search_kind search_type{LEMMA}; 
+    double fnr;
+
+    protected:
+        // prevent creating, assigning or moving base struct instances
+        search_profile_arguments() = default;
+        search_profile_arguments(search_profile_arguments const&) = default;
+        search_profile_arguments(search_profile_arguments&&) = default;
+        search_profile_arguments& operator=(search_profile_arguments const&) = default;
+        search_profile_arguments& operator=(search_profile_arguments&&) = default;
+};
+
+inline search_profile_arguments::~search_profile_arguments() = default;
+
+struct search_arguments final : public minimiser_threshold_arguments, search_profile_arguments, public stellar::StellarOptions
 {
     ~search_arguments() override = default;
     search_arguments() = default;
@@ -130,8 +163,11 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     seqan3::shape shape{seqan3::ungapped{20u}};
     uint8_t shape_size{shape.size()};
     uint8_t shape_weight{shape.count()};
-    uint64_t overlap{};
+    uint8_t query_every{2};
     size_t threshold{};
+    uint32_t seg_count{64};
+    uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
+    uint64_t max_segment_len{(uint64_t) 1e5};
 
     uint8_t threads{1u};
 
@@ -146,8 +182,8 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
     bool fast{false};
     bool verbose{false};
 
-    size_t cart_max_capacity{3}; //!TODO determine suitable values
-    size_t max_queued_carts{10}; //!TODO determine suitable values
+    size_t cart_max_capacity{1000};
+    size_t max_queued_carts{std::numeric_limits<size_t>::max()};
 
     raptor::threshold::threshold_parameters make_threshold_parameters() const noexcept
     {
@@ -168,7 +204,6 @@ struct search_arguments final : public minimiser_threshold_arguments, public ste
 
     float error_rate{};
     std::filesystem::path ref_meta_path{};
-    std::filesystem::path query_meta_path{};
     bool distribute{false};
 };
 

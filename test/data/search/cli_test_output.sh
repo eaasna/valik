@@ -18,14 +18,14 @@ do
     do
         for p in 50 100
         do
-            for o in 1 40
+            for n in 1 50
             do
                 echo "Searching the IBF (w=$w, k=19) for an approximate local match of length $p with $e error(s)"
-                echo "Potential matches overlap by $o bp"
-                output="8bins"$w"window"$e"error"$p"pattern"$o"overlap.gff"
+                echo "Query every ${n}th potential match"
+                output="8bins"$w"window"$e"error"$p"pattern"$n"query_every.gff"
                 er=$( echo $e/$p | bc -l )
                 valik search --distribute --index ../build/8bins${w}window.ibf --query query.fq --output "$output" --error-rate "$er" --pattern "$p" \
-                             --overlap "$o" --tau "$tau" --p_max "$p_max" --threads 1
+                             --query-every "$n" --tau "$tau" --p_max "$p_max" --threads 1 --without-parameter-tuning
                 rm "$output"
             done
         done

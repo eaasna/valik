@@ -8,11 +8,16 @@ add_library ("${PROJECT_NAME}_interface" INTERFACE)
 target_link_libraries ("${PROJECT_NAME}_interface" INTERFACE seqan3::seqan3)
 target_link_libraries ("${PROJECT_NAME}_interface" INTERFACE sharg::sharg)
 target_include_directories ("${PROJECT_NAME}_interface" INTERFACE ../include)
-target_include_directories ("${PROJECT_NAME}_interface" INTERFACE ../lib/raptor/include)
+# SYSTEM keyword turns off compiler warnings for subprojects
+target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/raptor/include)
 target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/stellar3/include)
-target_include_directories ("${PROJECT_NAME}_interface" INTERFACE ../lib/seqan/include)
-target_include_directories ("${PROJECT_NAME}_interface" INTERFACE ../lib/robin-hood-hashing/src/include)
-target_compile_options ("${PROJECT_NAME}_interface" INTERFACE "-pedantic" "-Wall" "-Wextra")
+target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/seqan/include)
+target_include_directories ("${PROJECT_NAME}_interface" SYSTEM INTERFACE ../lib/robin-hood-hashing/src/include)
+target_compile_options ("${PROJECT_NAME}_interface" INTERFACE "-pedantic" "-Wall" "-Wextra" "-Wno-interference-size")
+
+# IBF size 
+add_library ("${PROJECT_NAME}_index_size_lib" STATIC prepare/compute_bin_size.cpp)
+target_link_libraries ("${PROJECT_NAME}_index_size_lib" PUBLIC "${PROJECT_NAME}_interface")
 
 # Parameter tuning
 add_library ("${PROJECT_NAME}_threshold_lib" STATIC threshold/find.cpp)
@@ -89,6 +94,7 @@ target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_consolid
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_merge_processes_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_threshold_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_threshold_io_lib")
+target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_index_size_lib")
 
 # Valik executable
 add_executable ("${PROJECT_NAME}" valik_main.cpp)

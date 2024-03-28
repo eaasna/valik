@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include <filesystem>
+#include <map>
 
 namespace valik
 {
@@ -53,7 +54,7 @@ inline size_t kmer_lemma_threshold(size_t const l, uint8_t const k, uint8_t cons
 struct param_space
 {
     constexpr static uint8_t max_errors{15};    
-    constexpr static uint8_t max_thresh{5};
+    constexpr static uint8_t max_thresh{10};
     constexpr static size_t max_len{150};
     constexpr static std::pair<uint8_t, uint8_t> kmer_range{9, 21};
 };
@@ -105,6 +106,8 @@ inline uint64_t combinations(size_t const k, size_t const n)
     else
         return 0;
 }
+
+enum search_kind {LEMMA, HEURISTIC, STELLAR};
 
 }   //namespace valik
 

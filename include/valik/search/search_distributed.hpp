@@ -20,7 +20,7 @@ namespace valik::app
  * @return false if search failed.
  */
 template <bool compressed>
-bool search_distributed(search_arguments const & arguments, search_time_statistics & time_statistics)
+bool search_distributed(search_arguments & arguments, search_time_statistics & time_statistics)
 {
     using index_structure_t = std::conditional_t<compressed, index_structure::ibf_compressed, index_structure::ibf>;
     auto index = valik_index<index_structure_t>{};
@@ -31,6 +31,9 @@ bool search_distributed(search_arguments const & arguments, search_time_statisti
         auto end = std::chrono::high_resolution_clock::now();
         time_statistics.index_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
     }
+
+    if (arguments.max_queued_carts == std::numeric_limits<uint32_t>::max()) // if no user input
+        arguments.max_queued_carts = index.ibf().bin_count();
 
     std::optional<metadata> ref_meta;
     if (!arguments.ref_meta_path.empty())
@@ -68,14 +71,26 @@ bool search_distributed(search_arguments const & arguments, search_time_statisti
 
                 if (ref_meta)
                 {
-                    // search segments of a single reference file
                     auto ref_len = ref_meta->total_len;
                     auto seg = ref_meta->segment_from_bin(bin_id);
-                    process_args.insert(process_args.end(), {index.bin_path()[0][0], std::string(cart_queries_path),
-                                                            "--referenceLength", std::to_string(ref_len),
-                                                            "--sequenceOfInterest", std::to_string(seg.seq_ind),
-                                                            "--segmentBegin", std::to_string(seg.start),
-                                                            "--segmentEnd", std::to_string(seg.start + seg.len)});
+                    if (seg.seq_vec.size() > 1)
+                        throw std::runtime_error("Ambiguous sequence for distributed search.");
+
+                    if (index.bin_path().size() > 1)
+                    {
+                        // search a bin of a clustered metagenomic database
+                        process_args.insert(process_args.end(), {index.bin_path()[bin_id][0], std::string(cart_queries_path)});
+
+                    }
+                    else
+                    {
+                        // search segments of a single reference file
+                        process_args.insert(process_args.end(), {index.bin_path()[0][0], std::string(cart_queries_path),
+                                                                "--referenceLength", std::to_string(ref_len),
+                                                                "--sequenceOfInterest", std::to_string(seg.seq_vec[0]),
+                                                                "--segmentBegin", std::to_string(seg.start),
+                                                                "--segmentEnd", std::to_string(seg.start + seg.len)});
+                    }
                 }
                 else
                 {
@@ -90,10 +105,7 @@ bool search_distributed(search_arguments const & arguments, search_time_statisti
                 if (arguments.write_time)
                     process_args.insert(process_args.end(), "--time");
 
-                // ==========================================
-                //!WORKAROUND: Stellar does not allow smaller error rates
-                // ==========================================
-                float numEpsilon = std::max(arguments.error_rate, (float) 0.00001);
+                float numEpsilon = arguments.error_rate;
                 process_args.insert(process_args.end(), {"-e", std::to_string(numEpsilon),
                                                         "-l", std::to_string(arguments.pattern_size),
                                                         "-o", std::string(cart_queries_path) + ".gff"});

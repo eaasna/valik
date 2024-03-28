@@ -3,8 +3,8 @@ cd consolidate
 set -Eeuo pipefail
 
 rm -f *_full.gff
-rm -f *bins*overlap_segment_metadata.tsv
-rm -f *bins*overlap_reference_metadata.tsv
+rm -f *bins*overlap_segment_metadata.bin
+rm -f *bins*overlap_reference_metadata.bin
 
 ref_file=multi_seq_ref.fasta
 read_length=150
@@ -66,10 +66,12 @@ min_len=50
 
 for bin in 8 16
 do
-        valik split $ref_file --out ${bin}bins${min_len}overlap_reference_metadata.tsv --seg-count $bin --pattern $min_len --without-parameter-tuning
-
-        tail -n $((bin + 1)) ${bin}bins${min_len}overlap_reference_metadata.tsv | head -n $bin > segments.tsv
-        while read -r bin_id id start len;
+        valik split $ref_file --out ${bin}bins${min_len}overlap_reference_metadata.bin --seg-count $bin --pattern $min_len --without-parameter-tuning --write-out        
+        cat multi_seq_ref_*.fasta > multi_seq_ref.segments.fasta
+        rm multi_seq_ref_*.fasta
+        rm seg_files.txt
+        grep ">" multi_seq_ref.segments.fasta | cut -c 2- | awk -F'_' '{print $1 "\t" $2 "\t" $3}' > segments.tsv
+        while read -r id start len;
         do
                 end=$(echo $start + $len | bc)
                 stellar -e $error_rate -l $min_len -o multi_seq_ref_${id}_${start}_${len}.gff \
@@ -78,8 +80,7 @@ do
 
         done < segments.tsv
 
-        rm segments.tsv
-
+        rm segments.tsv multi_seq_ref.segments.fasta
 
         cat multi_seq_ref_*.gff > ${bin}bins${min_len}overlap_dream_all.gff
         rm multi_seq_ref_*
