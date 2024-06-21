@@ -9,6 +9,8 @@
 
 #include <seqan/seq_io.h>
 
+#include <seqan3/core/debug_stream.hpp>
+
 namespace valik::app
 {
 
@@ -190,15 +192,16 @@ void iterate_split_queries(search_arguments const & arguments,
     std::set<TId> uniqueIds; // set of short IDs (cut at first whitespace)
     bool idsUnique = true;
 
-    TSequence seq;
-    TId id;
+    TId id{};
     size_t seqCount{0};
     for (; !atEnd(inSeqs); ++seqCount)
     {
-        readRecord(id, seq, inSeqs);
+        TSequence seq{};
+	    seqan3::debug_stream << "Read query record to split\n";
+    	readRecord(id, seq, inSeqs);
         idsUnique &= stellar::_checkUniqueId(uniqueIds, id);
 
-        auto query_ptr = std::make_shared<TSequence>(seq);
+        auto query_ptr = std::make_shared<TSequence>(std::move(seq));
 
         for (auto const & seg : meta.segments_from_ind(seqCount))
         {
