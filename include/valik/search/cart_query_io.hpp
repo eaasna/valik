@@ -27,7 +27,7 @@ namespace valik
  */
 template <typename rec_vec_t, typename TAlphabet, typename TId, typename TStream>
 inline bool get_cart_queries(rec_vec_t const & records,
-                             seqan2::StringSet<seqan2::Segment<seqan2::String<TAlphabet> const, seqan2::InfixSegment>, seqan2::Dependent<>> & seqs,
+                             seqan2::StringSet<seqan2::Segment<seqan2::String<TAlphabet> const, seqan2::InfixSegment>, seqan2::Owner<>> & seqs,
                              seqan2::StringSet<TId> & ids,
                              TStream & strOut,
                              TStream & strErr)

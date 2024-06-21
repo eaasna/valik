@@ -28,7 +28,6 @@ struct search_error_profile
     search_kind search_type{search_kind::LEMMA};
     double fnr;
     double fp_per_pattern;
-    uint64_t max_segment_len;
 
     search_error_profile() noexcept = default;
     search_error_profile(search_error_profile const &) noexcept = default;
@@ -37,9 +36,9 @@ struct search_error_profile
     ~search_error_profile() noexcept = default;
 
     search_error_profile(param_set const & best_params, search_pattern const & eps_pattern, search_kind const which_search, 
-                    double const false_neg, double const false_pos, uint64_t const max_len) :
+                    double const false_neg, double const false_pos) :
                     params(best_params), pattern(eps_pattern), search_type(which_search), fnr(false_neg),
-                    fp_per_pattern(false_pos), max_segment_len(max_len) {}
+                    fp_per_pattern(false_pos) {}
     
     search_error_profile(param_set const & best_params, search_pattern const & eps_pattern, search_kind const which_search) :
                     params(best_params), pattern(eps_pattern), search_type(which_search) 
@@ -53,7 +52,7 @@ struct search_error_profile
     void serialize(Archive & archive)
     {
         auto type_int = static_cast<int>(search_type);
-        archive(params, pattern, type_int, fnr, fp_per_pattern, max_segment_len);
+        archive(params, pattern, type_int, fnr, fp_per_pattern);
         search_type = static_cast<search_kind>(type_int);
     }
 
@@ -70,7 +69,7 @@ struct search_error_profile
                     case search_kind::LEMMA: std::cout << "kmer lemma"; break;
                     default: break;
                 }
-                std::cout << '\t' << std::to_string(params.t) << '\t' << fnr << '\t' << fp_per_pattern << '\t' << max_segment_len << '\n';
+                std::cout << '\t' << std::to_string(params.t) << '\t' << fnr << '\t' << fp_per_pattern << '\n';
             }
         }
     }
@@ -158,7 +157,7 @@ struct search_kmer_profile
         std::cout.precision(3);
         std::cout << "\nRecommended shared " << std::to_string(k) << "-mer thresholds for matches of (min_length=" << std::to_string(l) 
                   << "; max_error_rate=" << max_error_rate() << ")\n";
-        std::cout << "errors\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\tmax_segment_len\n";
+        std::cout << "errors\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\n";
 
         for (uint8_t er{0}; er <= max_errors; er++)
         {

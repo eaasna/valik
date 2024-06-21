@@ -210,6 +210,7 @@ void run_search(sharg::parser & parser)
     }
     else
     {
+        //TODO: this can be removed?
         if (arguments.split_query && arguments.manual_parameters)
         {
             throw std::runtime_error{"Provide the chosen number of query segments with --seg-count "
@@ -335,7 +336,7 @@ void run_search(sharg::parser & parser)
         }
         else
         {
-            arguments.max_segment_len = error_profile.max_segment_len;
+            arguments.max_segment_len = max_segment_len(error_profile.fp_per_pattern, arguments.pattern_size, arguments.query_every);
             arguments.threshold = error_profile.params.t;
             arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
             if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)

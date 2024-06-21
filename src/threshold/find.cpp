@@ -3,13 +3,6 @@
 namespace valik
 {
 
-//!TODO: determine suitable parameters
-constexpr double FPR_UPPER{0.1};
-constexpr double FNR_UPPER{0.05};
-constexpr uint8_t THRESH_LOWER{4};
-constexpr size_t DIST_GRANULARITY_LOWER{100};
-constexpr size_t PATTERNS_PER_SEGMENT{5000};
-
 /**
  * @brief For a pattern (with min length and max number of errors) find the best k-mer size and threshold for a given reference database.  
 */
@@ -111,31 +104,33 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
         auto best_params = param_set(attr.k, kmer_lemma_threshold(pattern.l, attr.k, errors), space);
 
         if ((best_params.t < THRESH_LOWER) ||  
-        (1 - pow(1 - ref_meta.pattern_spurious_match_prob(best_params), PATTERNS_PER_SEGMENT)) > FPR_UPPER)
-        {
-            search_type = search_kind::HEURISTIC;
-            double best_score = pattern.l;
-
-            uint8_t t{1};
-            while ((t < space.max_thresh) && (attr.fnr_for_param_set(pattern, best_params) < FNR_UPPER))
-            {
-                best_params = param_set(attr.k, t, space);
-                t++;
-            }
-        }
-        
-        //!TODO: find segment length cutoff
-        uint64_t max_len = ref_meta.max_segment_len(best_params);
-        if ((pattern.l * DIST_GRANULARITY_LOWER) > max_len)
+        segment_fpr(ref_meta.pattern_spurious_match_prob(best_params), PATTERNS_PER_SEGMENT) > FPR_UPPER)
         {
             search_type = search_kind::STELLAR;
+            uint8_t t{best_params.t + 1u};
+            while ((t < space.max_thresh) && (attr.fnr_for_param_set(pattern, best_params) < FNR_UPPER))
+            {
+                param_set try_params = param_set(attr.k, t, space);
+                if (segment_fpr(ref_meta.pattern_spurious_match_prob(try_params), PATTERNS_PER_SEGMENT) <= FPR_UPPER)
+                {
+                    best_params = std::move(try_params);
+                    search_type = search_kind::HEURISTIC;
+                }
+                t++;
+            }
+            if (t >= space.max_thresh)
+                seqan3::debug_stream << "TODO: Need to calculate a bigger FNR table\n";
+        }
+        
+        if (search_type == search_kind::STELLAR)
+        {
             kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type});
         }
         else
         {
             double fnr = attr.fnr_for_param_set(pattern, best_params);
             double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params);
-            kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern, max_len});
+            kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern});
         }
     }
 

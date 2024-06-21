@@ -1,3 +1,4 @@
+
 #include <utilities/consolidate/merge_processes.hpp>
 
 namespace valik
@@ -11,11 +12,16 @@ bool merge_processes(search_arguments const & arguments,
     // merge metadata from all threads
     exec_meta.merge(arguments, time_statistics);
     std::vector<std::string> merge_process_args;
+    seqan3::debug_stream << "In merge processes\n";
     if (exec_meta.output_files.size() > 0)
     {
+        seqan3::debug_stream << "Gathering " << exec_meta.output_files.size() << " output files\n";
         merge_process_args.push_back(var_pack.merge_exec);
         for (auto & path : exec_meta.output_files)
+        {
             merge_process_args.push_back(path);
+            seqan3::debug_stream << "filepath\n" << path.c_str();
+        }
     }
     else
     {

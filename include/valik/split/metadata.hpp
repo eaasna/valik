@@ -651,21 +651,6 @@ struct metadata
 
             return std::max(0.0, fpr - precision);
         }
-
-        /**
-        * @brief The maximum length of a query segment that does not appear spuriously in reference bins. 
-        */
-        uint64_t max_segment_len(param_set const & params) const
-        {
-            double fp_per_pattern = pattern_spurious_match_prob(params);
-            if (fp_per_pattern < 9e-6) // avoid very small floating point numbers
-                return 1e4;
-
-            constexpr double FPR_LIMIT = 0.05; // allow FPR of 5% per query segment
-            size_t max_patterns_per_segment = std::floor(log(1 - FPR_LIMIT) / log(1 - fp_per_pattern)); 
-            
-            return pattern_size + query_every * (std::max(max_patterns_per_segment, (size_t) 2) - 1);
-        }
 };
 
 } // namespace valik

@@ -41,8 +41,7 @@ struct filtering_request
     {
         double pattern_p = ref_meta.pattern_spurious_match_prob(params);
         uint64_t patterns_per_segment = std::round((query_meta.total_len / (double) query_meta.seg_count - pattern.l + 1) / (double) query_every);
-        double none_match_p = pow(1 - pattern_p, patterns_per_segment);
-        return std::min(1 - none_match_p, 1.0);
+        return segment_fpr(pattern_p, patterns_per_segment);
     }
 
 };

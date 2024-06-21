@@ -180,7 +180,7 @@ void run_build(sharg::parser & parser)
     }
 
     if (arguments.fast)
-        raptor::compute_minimiser(arguments);   // requires bin_path
+        raptor::compute_minimiser(arguments);   // requires bin_path and out_dir
     
     // ==========================================
     // Find IBF size.
