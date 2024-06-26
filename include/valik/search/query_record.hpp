@@ -4,6 +4,8 @@
 #include <vector>
 #include <sstream>
 
+#include <valik/split/metadata.hpp>
+
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 #include <seqan/sequence.h>
 

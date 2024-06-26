@@ -2,7 +2,6 @@
 
 #include <valik/search/producer_threads_parallel.hpp>
 #include <valik/search/search_time_statistics.hpp>
-#include <valik/split/metadata.hpp>
 
 #include <stellar/utils/stellar_app_runtime.hpp>
 #include <stellar/io/import_sequence.hpp>

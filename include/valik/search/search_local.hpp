@@ -6,7 +6,6 @@
 #include <valik/search/iterate_queries.hpp>
 #include <valik/search/load_index.hpp>
 #include <valik/shared.hpp>
-#include <valik/split/metadata.hpp>
 #include <utilities/cart_queue.hpp>
 #include <utilities/consolidate/merge_processes.hpp>
 #include <utilities/threshold/search_kmer_profile.hpp>
