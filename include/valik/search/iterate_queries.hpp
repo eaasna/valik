@@ -46,12 +46,11 @@ void iterate_distributed_queries(search_arguments const & arguments,
  * @param arguments Command line arguments.
  * @param queue Shopping cart queue for sending queries over to Stellar search.
  */
-template <typename count_t>
-void iterate_all_queries(count_t const ref_seg_count,
+template <typename TSequence>
+void iterate_all_queries(size_t const ref_seg_count,
                          search_arguments const & arguments,
-                         cart_queue<shared_query_record<seqan2::String<seqan2::Dna>>> & queue)
+                         cart_queue<shared_query_record<TSequence>> & queue)
 {
-    using TSequence = seqan2::String<seqan2::Dna>;
     using TId = seqan2::CharString;
     std::vector<shared_query_record<TSequence>> query_records{};
     constexpr uint64_t chunk_size = (1ULL << 20) * 10;
@@ -73,20 +72,11 @@ void iterate_all_queries(count_t const ref_seg_count,
         readRecord(id, seq, inSeqs);
         idsUnique &= stellar::_checkUniqueId(uniqueIds, id);
 
-        auto query_ptr = std::make_shared<TSequence>(std::move(seq));
-        std::vector<seqan3::dna4> seg_vec{};
-        for (auto & c : *query_ptr)
-        {
-            seqan3::dna4 nuc;
-            nuc.assign_char(c);
-            seg_vec.push_back(nuc);
-        }
-
-        query_records.emplace_back(seqan2::toCString(id), std::move(seg_vec), seqan2::infix(*query_ptr, 0, seqan2::length(*query_ptr)), query_ptr);
+        query_records.emplace_back(std::move(seq), seqan2::toCString(std::move(id)));
 
         if (query_records.size() > chunk_size)
         {
-            search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ref_seg_count, arguments, query_records, queue);
+            search_all_parallel<shared_query_record<TSequence>>(ref_seg_count, arguments, query_records, queue);
             query_records.clear();
         }
     }
@@ -94,7 +84,7 @@ void iterate_all_queries(count_t const ref_seg_count,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    search_all_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ref_seg_count, arguments, query_records, queue);    
+    search_all_parallel<shared_query_record<TSequence>>(ref_seg_count, arguments, query_records, queue);    
 }
 
 /**
@@ -106,13 +96,12 @@ void iterate_all_queries(count_t const ref_seg_count,
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between Valik prefiltering and Stellar search.
  */
-template <typename ibf_t>
+template <typename ibf_t, typename TSequence>
 void iterate_short_queries(search_arguments const & arguments,
                            ibf_t const & ibf,
                            raptor::threshold::threshold const & thresholder,
-                           cart_queue<shared_query_record<seqan2::String<seqan2::Dna>>> & queue)
+                           cart_queue<shared_query_record<TSequence>> & queue)
 {
-    using TSequence = seqan2::String<seqan2::Dna>;
     using TId = seqan2::CharString;
     std::vector<shared_query_record<TSequence>> query_records{};
     constexpr uint64_t chunk_size = (1ULL << 20) * 10;
@@ -134,21 +123,11 @@ void iterate_short_queries(search_arguments const & arguments,
         readRecord(id, seq, inSeqs);
         idsUnique &= stellar::_checkUniqueId(uniqueIds, id);
 
-        auto query_ptr = std::make_shared<TSequence>(std::move(seq));
-        std::vector<seqan3::dna4> seg_vec{};
-        for (auto & c : *query_ptr)
-        {
-            seqan3::dna4 nuc;
-            nuc.assign_char(c);
-            seg_vec.push_back(nuc);
-        }
-
-        query_records.emplace_back(seqan2::toCString(id), std::move(seg_vec), seqan2::infix(*query_ptr, 0, seqan2::length(*query_ptr)), query_ptr);
+        query_records.emplace_back(std::move(seq), seqan2::toCString(std::move(id)));
 
         if (query_records.size() > chunk_size)
         {
-            prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
-         
+            prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
             query_records.clear();
         }
     }
@@ -156,7 +135,7 @@ void iterate_short_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+    prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
 }
 
 /**
@@ -169,14 +148,13 @@ void iterate_short_queries(search_arguments const & arguments,
  * @param queue Shopping cart queue for load balancing between Valik prefiltering and Stellar search.
  * @param meta Metadata table for split query segments.
  */
-template <typename ibf_t>
+template <typename ibf_t, typename TSequence>
 void iterate_split_queries(search_arguments const & arguments,
                            ibf_t const & ibf,
                            raptor::threshold::threshold const & thresholder,
-                           cart_queue<shared_query_record<seqan2::String<seqan2::Dna>>> & queue,
+                           cart_queue<shared_query_record<TSequence>> & queue,
                            metadata & meta)
 {
-    using TSequence = seqan2::String<seqan2::Dna>;
     using TId = seqan2::CharString;
     std::vector<shared_query_record<TSequence>> query_records{};
     constexpr uint64_t chunk_size = (1ULL << 20) * 10;
@@ -202,21 +180,13 @@ void iterate_split_queries(search_arguments const & arguments,
 
         for (auto const & seg : meta.segments_from_ind(seqCount))
         {
-            seqan2::Segment<TSequence const, seqan2::InfixSegment> inf = seqan2::infixWithLength(*query_ptr, seg.start, seg.len);
-            std::vector<seqan3::dna4> seg_vec{};
-            for (auto & c : inf)
-            {
-                seqan3::dna4 nuc;
-                nuc.assign_char(c);
-                seg_vec.push_back(nuc);
-            }
-
-            query_records.emplace_back(seqan2::toCString(id), std::move(seg_vec), inf, query_ptr);
+            // each split query record contains a copy of the same shared pointer
+            query_records.emplace_back(seqan2::toCString(std::move(id)), seg, query_ptr);
 
             if (query_records.size() > chunk_size)
             {
-                prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
-                query_records.clear();
+                prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
+                query_records.clear();  // shared pointers are erased -> memory is deallocated
             }
         }
     }
@@ -224,7 +194,7 @@ void iterate_split_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<seqan2::String<seqan2::Dna>>>(ibf, arguments, query_records, thresholder, queue);
+    prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
 }
 
 }   // namespace valik::app
