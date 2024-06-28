@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utilities/alphabet_wrapper/matcher/stellar_matcher.hpp>
+#include <utilities/alphabet_wrapper/seqan/alphabet.hpp>
 #include <valik/search/producer_threads_parallel.hpp>
 #include <valik/search/search_time_statistics.hpp>
 
@@ -7,6 +9,8 @@
 #include <stellar/io/import_sequence.hpp>
 
 #include <seqan/seq_io.h>
+
+#include <seqan3/io/sequence_file/all.hpp>
 
 namespace valik::app
 {
@@ -38,6 +42,11 @@ void iterate_distributed_queries(search_arguments const & arguments,
     }
 }
 
+struct adaptor_traits : seqan3::sequence_file_input_default_traits_dna
+{
+    using sequence_alphabet = seqan2::alphabet_adaptor<seqan3::dna4>; // instead of dna5
+};
+
 /**
  * @brief Function that creates a query record from each query sequence and sends it to Stellar search.
  *
@@ -50,6 +59,16 @@ void iterate_all_queries(size_t const ref_seg_count,
                          search_arguments const & arguments,
                          cart_queue<shared_query_record<TSequence>> & queue)
 {
+    seqan3::sequence_file_input<adaptor_traits> fin{std::istringstream{arguments.query_file}, seqan3::format_fasta{}};
+    using record_type = typename decltype(fin)::record_type;
+
+    std::vector<record_type> rec_vec{};
+    for (auto & record : fin)
+    {
+        rec_vec.emplace_back(record);
+    }
+    jst::contrib::stellar_matcher<decltype(rec_vec)> matcher(rec_vec, (double) arguments.error_rate, (unsigned) arguments.minLength);
+
     using TId = seqan2::CharString;
     std::vector<shared_query_record<TSequence>> query_records{};
     constexpr uint64_t chunk_size = (1ULL << 20) * 10;

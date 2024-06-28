@@ -277,9 +277,9 @@ namespace seqan3::custom
     };
 
     template <seqan3::alphabet wrapped_t>
-    struct alphabet<seqan::alphabet_adaptor<wrapped_t>>
+    struct alphabet<seqan2::alphabet_adaptor<wrapped_t>>
     {
-        using alphabet_t = seqan::alphabet_adaptor<wrapped_t>;
+        using alphabet_t = seqan2::alphabet_adaptor<wrapped_t>;
         using rank_t = seqan3::alphabet_rank_t<wrapped_t>;
         using char_t = seqan3::alphabet_char_t<wrapped_t>;
 
