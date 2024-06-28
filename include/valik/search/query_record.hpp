@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include <valik/split/metadata.hpp>
-#include <utilities/hashable_Dna.hpp>
+#include <utilities/alphabet_wrapper/matcher/stellar_matcher.hpp>
 
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 #include <seqan/sequence.h>
