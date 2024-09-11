@@ -55,6 +55,9 @@ static inline dream_stellar::StellarOptions make_thread_options(search_arguments
     return threadOptions;
 }
 
+template <typename T>
+class empty_class;
+
 /**
  * @brief Function that calls Valik prefiltering and launches parallel threads of Stellar search.
  *
@@ -243,9 +246,39 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                 dream_stellar::StellarIndex<TAlphabet> stellarIndex{queries, threadOptions};
                 dream_stellar::StellarSwiftPattern<TAlphabet> swiftPattern = stellarIndex.createSwiftPattern();
 
+                auto const & index = host(swiftPattern);
+                // type of index
+                // const seqan2::Index<const seqan2::StringSet<seqan2::Segment<const seqan2::String<seqan2::SimpleType<unsigned char, seqan2::Dna_>, seqan2::Alloc<> >, seqan2::InfixSegment>, seqan2::Owner<> >, seqan2::IndexQGram<seqan2::UngappedShape<0>, seqan2::Tag<seqan2::OpenAddressing_> > >&
+                
+                // type of index.bucketMap
+                // seqan2::BucketMap<long unsigned int>
+                
+                // type of indexDir(index) getter for the the qgramCode?
+                // const seqan2::String<long unsigned int, seqan2::Alloc<> >&
+                
+                // type of index.bucketMap.qgramCode
+                // seqan2::String<long unsigned int, seqan2::Alloc<> > 
+//                empty_class<decltype(index.bucketMap.qgramCode)> E{};
+
                 // Construct index of the queries
                 thread_meta.text_out << "Constructing index..." << '\n';
                 stellarIndex.construct();
+
+                std::cout << "search_local\n";
+                std::cout << "BucketMap qgramCode length\t" << seqan2::length(index.bucketMap.qgramCode) << '\n'; 
+                std::cout << "BucketMap qgramCode length\t" << seqan2::length(seqan2::indexDir(index)) << '\n';
+                /*
+                for (uint64_t i{1}; i < seqan2::length(index.bucketMap.qgramCode); i++)
+                {
+                    uint64_t bucketBegin = index.bucketMap.qgramCode[i - 1];
+                    uint64_t bucketEnd = index.bucketMap.qgramCode[i];
+                    if (bucketBegin > bucketEnd)
+                    {
+                        std::cout << "Error: bucketBegin > bucketEnd\n" << bucketBegin << " > " << bucketEnd << "\n";
+                    }
+                }
+                */
+
                 thread_meta.text_out << std::endl;
                 stellarThreadTime.swift_index_construction_time.manual_timing(swift_index_time);
 
