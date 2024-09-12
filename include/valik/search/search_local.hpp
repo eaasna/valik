@@ -267,6 +267,27 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                 std::cout << "search_local\n";
                 std::cout << "BucketMap qgramCode length\t" << seqan2::length(index.bucketMap.qgramCode) << '\n'; 
                 std::cout << "BucketMap qgramCode length\t" << seqan2::length(seqan2::indexDir(index)) << '\n';
+
+                uint64_t correct_bin{0};
+                uint64_t incorrect_bin{0};
+                for (uint64_t i{1}; i < seqan2::length(indexDir(index)); i++)
+                {
+                    uint64_t bucketBegin = indexDir(index)[i - 1];
+                    uint64_t bucketEnd = indexDir(index)[i];
+                    if (bucketBegin > bucketEnd)
+                    {
+                        incorrect_bin++;
+                        std::cout << "Error: bucketBegin > bucketEnd\n" << bucketBegin << " > " << bucketEnd << "\n";
+                    }
+                    else
+                    {
+                        correct_bin++;
+                    }
+                }
+
+                std::cout << "Correct bins\t" << correct_bin << '\n';
+                std::cout << "Incorrect bins\t" << incorrect_bin << '\n';
+
                 /*
                 for (uint64_t i{1}; i < seqan2::length(index.bucketMap.qgramCode); i++)
                 {
