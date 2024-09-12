@@ -270,6 +270,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
 
                 uint64_t correct_bin{0};
                 uint64_t incorrect_bin{0};
+                // what about the last k-mer in the QGramDir?
                 for (uint64_t i{1}; i < seqan2::length(indexDir(index)); i++)
                 {
                     uint64_t bucketBegin = indexDir(index)[i - 1];
@@ -277,7 +278,11 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                     if (bucketBegin > bucketEnd)
                     {
                         incorrect_bin++;
-                        std::cout << "Error: bucketBegin > bucketEnd\n" << bucketBegin << " > " << bucketEnd << "\n";
+                        std::cout << "Error: bucketBegin > bucketEnd\n";
+                        std::cout << "h1=" << i << '\n';
+                        std::cout << "previous bucket begin\t" << indexDir(index)[i-1] << '\n';
+                        std::cout << "current bucket begin\t" << indexDir(index)[i] << '\n';
+                        std::cout << "next bucket begin\t" << indexDir(index)[i+1] << '\n';
                     }
                     else
                     {
