@@ -22,6 +22,7 @@
 #include <valik/build/call_parallel_on_bins.hpp>
 #include <valik/split/metadata.hpp>
 #include <utilities/prepare/parse_bin_paths.hpp>
+#include <utilities/prepare/reference_record.hpp>
 
 namespace seqan::hibf::build
 {
