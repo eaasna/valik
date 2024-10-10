@@ -53,8 +53,8 @@ inline void prefilter_queries_parallel(index_t const & index,
                     verbose_out.write_warning(record, bin_hits.size());
                 if (arguments.keep_best_repeats)    // keep bin hits for most entropic bins
                 {
-                    auto & entropies = index.bin_entropies();
-                    size_t max_entropy = std::max_element(entropies.begin(), entropies.end());
+                    auto const & entropies = index.bin_entropies();
+                    size_t max_entropy = *std::max_element(entropies.begin(), entropies.end());
 
                     for (auto & bin : bin_hits)
                     {

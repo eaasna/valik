@@ -15,13 +15,13 @@ namespace valik::app
  * @brief Function that sends chunks of queries to the prefilter which then writes shopping carts onto disk.
  *
  * @param arguments Command line arguments.
- * @param ibf Interleaved Bloom Filter.
+ * @param index Valik index of the reference database.
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between prefiltering and Stellar search.
  */
-template <typename ibf_t, typename cart_queue_t>
+template <typename index_t, typename cart_queue_t>
 void iterate_distributed_queries(search_arguments const & arguments,
-                                 ibf_t const & ibf,
+                                 index_t const & index,
                                  raptor::threshold::threshold const & thresholder,
                                  cart_queue_t & queue)
 {
@@ -34,7 +34,7 @@ void iterate_distributed_queries(search_arguments const & arguments,
         for (auto && fasta_record: chunked_records)
             query_records.emplace_back(std::move(fasta_record.id()), std::move(fasta_record.sequence()));
 
-        prefilter_queries_parallel(ibf, arguments, query_records, thresholder, queue);
+        prefilter_queries_parallel(index, arguments, query_records, thresholder, queue);
     }
 }
 
@@ -91,7 +91,7 @@ void iterate_all_queries(size_t const ref_seg_count,
  *
  * @tparam index_t Valik index type containing Interleaved Bloom Filter.
  * @param arguments Command line arguments.
- * @param infex Valik index over the reference database.
+ * @param infex Valik index of the reference database.
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between Valik prefiltering and Stellar search.
  */

@@ -87,6 +87,11 @@ public:
         return bin_entropies_;
     }
 
+    std::vector<size_t> const & bin_entropies() const
+    {
+        return bin_entropies_;
+    }
+
     data_t & ibf()
     {
         return ibf_;
