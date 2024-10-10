@@ -37,6 +37,7 @@ private:
 
         valik_index<> index{*arguments};
         auto & ibf = index.ibf();
+        auto & entropies = index.bin_entropies();
 
         using sequence_file_t = seqan3::sequence_file_input<dna4_traits, seqan3::fields<seqan3::field::seq>>;
         auto hash_view = [&] ()
@@ -66,6 +67,21 @@ private:
 
             std::vector<std::vector<std::string>> file_paths = parse_bin_paths(*arguments);
             call_parallel_on_bins(minimiser_worker, file_paths, arguments->threads);
+
+            std::vector<std::vector<std::string>> header_paths = parse_bin_paths(*arguments, "header");
+            std::string shape_string{};
+            uint64_t window_size{};
+            size_t count{};
+            entropies.resize(header_paths.size());
+            for (auto && [file_names, bin_number] : seqan3::views::zip(header_paths, std::views::iota(0u)))
+            {
+                for (auto & filename : file_names)
+                {
+                    std::ifstream file_stream{filename};
+                    file_stream >> shape_string >> window_size >> count;
+                    entropies[bin_number] += count;
+                }
+            }
         }
         else if (arguments->bin_path.size() > 1)
         {

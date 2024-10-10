@@ -31,6 +31,7 @@ private:
     uint64_t window_size_{};
     seqan3::shape shape_{};
     std::vector<std::vector<std::string>> bin_path_{};
+    std::vector<size_t> bin_entropies_{};
     data_t ibf_{};
 
 public:
@@ -81,6 +82,11 @@ public:
         return bin_path_;
     }
 
+    std::vector<size_t> & bin_entropies()
+    {
+        return bin_entropies_;
+    }
+
     data_t & ibf()
     {
         return ibf_;
@@ -110,6 +116,7 @@ public:
                 archive(window_size_);
                 archive(shape_);
                 archive(bin_path_);
+                archive(bin_entropies_);
                 archive(ibf_);
             }
             catch (std::exception const & e)

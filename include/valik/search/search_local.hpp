@@ -400,11 +400,11 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
         raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
         if constexpr (is_split)
         {
-            iterate_split_queries<ibf_t, TSequence>(arguments, index.ibf(), thresholder, queue, query_meta.value());
+            iterate_split_queries<ibf_t, TSequence>(arguments, index, thresholder, queue, query_meta.value());
         }
         else
         {
-            iterate_short_queries<ibf_t, TSequence>(arguments, index.ibf(), thresholder, queue);
+            iterate_short_queries<ibf_t, TSequence>(arguments, index, thresholder, queue);
         }
     }
 
