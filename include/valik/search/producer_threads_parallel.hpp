@@ -51,15 +51,19 @@ inline void prefilter_queries_parallel(index_t const & index,
             {
                 if (arguments.verbose)
                     verbose_out.write_warning(record, bin_hits.size());
-                if (arguments.keep_best_repeats)    // keep bin hits for most entropic bins
+                if (arguments.keep_best_repeats)    // keep hits for bins with the highest entropy
                 {
-                    auto const & entropies = index.bin_entropies();
-                    size_t max_entropy = *std::max_element(entropies.begin(), entropies.end());
-
-                    for (auto & bin : bin_hits)
+                    auto const & entropy_ranking = index.entropy_ranking();
+                    size_t inserted_bins{0};
+                    for (auto bin : entropy_ranking)
                     {
-                        if ((double) entropies[bin] > (double) max_entropy * 0.5)
+                        if (bin_hits.count(bin) > 0)
+                        {
                             queue.insert(bin, record);
+                            inserted_bins++;
+                        }
+                        if (inserted_bins < std::max((size_t) 4, (size_t) std::round(ibf.bin_count() / 10.0)))
+                            return;
                     }
                 }
                 else if (arguments.keep_all_repeats)

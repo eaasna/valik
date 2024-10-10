@@ -37,7 +37,8 @@ private:
 
         valik_index<> index{*arguments};
         auto & ibf = index.ibf();
-        auto & entropies = index.bin_entropies();
+        auto & entropy_ranking = index.entropy_ranking();
+        std::vector<std::pair<size_t, double>> entropy_map{};
 
         using sequence_file_t = seqan3::sequence_file_input<dna4_traits, seqan3::fields<seqan3::field::seq>>;
         auto hash_view = [&] ()
@@ -72,16 +73,23 @@ private:
             std::string shape_string{};
             uint64_t window_size{};
             size_t count{};
-            entropies.resize(header_paths.size());
+            uint64_t bin_size{};
+            entropy_ranking.reserve(header_paths.size());
             for (auto && [file_names, bin_number] : seqan3::views::zip(header_paths, std::views::iota(0u)))
             {
-                for (auto & filename : file_names)
-                {
-                    std::ifstream file_stream{filename};
-                    file_stream >> shape_string >> window_size >> count;
-                    entropies[bin_number] += count;
-                }
+                //!TODO: disallow multiple files per bin
+                std::ifstream file_stream{file_names[0]};
+                file_stream >> shape_string >> window_size >> count >> bin_size;
+                entropy_map.emplace_back(std::make_pair((size_t) bin_number, (double) count / (double) bin_size));
             }
+
+            std::ranges::sort(entropy_map.begin(), entropy_map.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b)
+            { 
+                return a.second > b.second; 
+            });
+
+            for (auto && [bin_id, entropy] : entropy_map)
+                entropy_ranking.push_back(bin_id);
         }
         else if (arguments->bin_path.size() > 1)
         {
