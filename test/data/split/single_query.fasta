@@ -1,30 +1,30 @@
->0 start_position=6448,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>0 ref_position=6448,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 CGAAACGAGAGTGTTCGTCCTGACTGGTGGGGGCCTACCTACAGACCTCAGTGTTAGCGCCTATAATGGAGGGCTGTGGA
 CTAACACTCAGGTGCGTGGAGTCCCCACGACTAGCGATAGCGGCAGTTACTGGTTACCGCACAGGCCTAT
->1 start_position=3938,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>1 ref_position=3938,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 GGTGGCTAACAATTCCCCATACATGTTCAGCGAAGGTAGAACAACCAAAAGCCCGTTGCGGAACTGGCCAATGCTATCCC
 AAGTTAGAAGGAATACGAACTGTTTCCGGGGACCAAGGCCCAGTTGGACATAATTTAACAATTCGGCGAA
->2 start_position=472,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>2 ref_position=472,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 CATTCGAAAGTGCGTTACACAAAACCCCACCGCAATCGTATGACTCTCGCTGAAAAAGGGTGGTCAACCATTACACCTCT
 TATGCCTGTTGTGGGAGGCTCGGTCTTAAGCAGCGCGCGAGCTGTGATCCAGGCTACCACGGACATAGTG
->3 start_position=4502,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>3 ref_position=4502,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 CCTAACAAGAAGCACGCCAGCGTGCCCAATCCGGATAGTGGACGCTCCCCGGGTTTAGAAGCAAATAACCTAGGTGTACC
 TAACAATCGGCAACGCAGTTTTCTAGGATTCCTGCATTTCTATCAGAACAAACAGATTCTTTGAGGGCTT
->4 start_position=9345,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>4 ref_position=9345,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 GTCCCGATCGGGAGAAGGAATTAGCGTATCGGTAAATGGATTGCGGGAGCTGAGCATACAACAGAGAAGTGTATAAGCTA
 TGGACTCGTCGGAACCGATAGGAATTCCCAGCCTAGCCCCGGCTCGAACGGCACGGAATAAACGGCGATG
->5 start_position=2136,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>5 ref_position=2136,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 CTCCTATTTGCCTTGAAAGCTGAGCGGTTCAGACAGAGTAACTACATCTTATATGTAGCCACCCTCACATAGTTGTTGGG
 GGCAAACAGCTCAGGATTCCTGGTCCCTGGCACGGATATAGATCACAATCTGGAATTCCCTCCTAAGTAC
->6 start_position=749,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>6 ref_position=749,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 GCCGGATCGGTTGTAAGCTAGCCGGGCCTAGGGGTTCACCGTAACGGATTAGTCAAATTAAAATCCTGCGATGACTTCCT
 GATAGAACTGAAGTCGTGACCCCTCCGCTGCGGGCCTACATCTCTTTTCGCAGGCGTGGTTGTTTACCAG
->7 start_position=8691,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>7 ref_position=8691,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 TACACATCCCGTGGTTGAGGGTGTAACTTGGGTTGGAGCATGTCCCCCCACAGAGTCTGGATTCACGCGATTACAACGTT
 CAGGCACTCTCACCAAAACTGGCCAGCATCCAGTCAGAGGAAGCATCCAGCTGACCGTGAGATGCCTTCC
->8 start_position=3681,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>8 ref_position=3681,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 GAGTTTCCGCACCCCCAGGGACGGGCTCCGGCCTCACTATGTTCAAAGCCCTAAATGCACATTCTAGTCTCCACGTGTTA
 CAGTAGGGCCAAAGATGTCGTAGTAACAGATTGGCATTGGACTATAAAAGATGAGTGATTAAGATCTGAA
->9 start_position=6580,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
+>9 ref_position=6580,length=150,errors=3,reference_id='1',reference_file='single_reference.fasta'
 GTTGCCGCACAGGCCTATTCGTAGCCTTTAAGAGGGGCACGGTTTCACGCTGCTACGCCGAGGACCGATCACCCGGAAGG
 CTCTCATCTCGTATGGGTACTTAGGCCGATGCCCCGCGCTAAACTTCAACCCAAAAGACGTTGAGTAGTC

@@ -66,6 +66,10 @@ static inline dream_stellar::StellarOptions make_thread_options(search_arguments
 template <bool is_split, bool stellar_only>
 bool search_local(search_arguments & arguments, search_time_statistics & time_statistics)
 {
+    if (arguments.bin_path.size() > 1 || arguments.bin_path[0].size() > 1)
+        throw std::runtime_error("Multiple reference files can not be searched in shared memory mode. "
+                                 "Add --distribute argument to launch multiple distributed instances of DREAM-Stellar search.");
+
     using index_structure_t = index_structure::ibf;
     auto index = valik_index<index_structure_t>{};
 
@@ -169,10 +173,6 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
             return false;
         }
     }
-
-    if (arguments.bin_path.size() > 1 || arguments.bin_path[0].size() > 1)
-        throw std::runtime_error("Multiple reference files can not be searched in shared memory mode. "
-                                 "Add --distribute argument to launch multiple distributed instances of DREAM-Stellar search.");
 
     dream_stellar::stellar_runtime input_databases_time{};
     bool const databasesSuccess = input_databases_time.measure_time([&]()
@@ -396,15 +396,15 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     }
     else
     {
-        using ibf_t = decltype(index.ibf());
+        using index_t = decltype(index);
         raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
         if constexpr (is_split)
         {
-            iterate_split_queries<ibf_t, TSequence>(arguments, index.ibf(), thresholder, queue, query_meta.value());
+            iterate_split_queries<index_t, TSequence>(arguments, index, thresholder, queue, query_meta.value());
         }
         else
         {
-            iterate_short_queries<ibf_t, TSequence>(arguments, index.ibf(), thresholder, queue);
+            iterate_short_queries<index_t, TSequence>(arguments, index, thresholder, queue);
         }
     }
 
