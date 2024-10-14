@@ -6,7 +6,7 @@
 namespace valik
 {
 
-inline auto parse_bin_paths(build_arguments const & arguments)
+inline auto parse_bin_paths(build_arguments const & arguments, std::string const & extension = "minimiser")
 {
     std::vector<std::vector<std::string>> minimiser_files{};
     if (arguments.bin_path.size() > 1)
@@ -16,7 +16,7 @@ inline auto parse_bin_paths(build_arguments const & arguments)
             std::vector<std::string> bin_headers;
             for (std::filesystem::path file : bin_files)
             {
-                bin_headers.emplace_back(arguments.out_dir / file.stem().replace_extension("minimiser"));
+                bin_headers.emplace_back(arguments.out_dir / file.stem().replace_extension(extension));
             }
             minimiser_files.push_back(bin_headers);
         }
@@ -30,7 +30,7 @@ inline auto parse_bin_paths(build_arguments const & arguments)
             file /= ref_file.stem();
             file += ".";
             file += std::to_string(bin);
-            file += ".minimiser";
+            file += "." + extension;
             minimiser_files.emplace_back(1, file.string());
         }
     }

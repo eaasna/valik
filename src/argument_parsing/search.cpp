@@ -82,8 +82,16 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
     parser.add_flag(arguments.keep_best_repeats,
                     sharg::config{.short_id = '\0',
                     .long_id = "keep-best-repeats",
-                    .description = "Find only highest similarity matches for repeat regions.",
+                    .description = "Consider only high entropy regions for queries with abundant matches.",
                     .advanced = true});
+    parser.add_option(arguments.best_bin_entropy_cutoff,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "bin-entropy-cutoff",
+                      .description = "For queries with abundant matches, search only highly varied reference regions. "
+                                     "Increase this value to search more of the reference. "
+                                     "Use with --keep-best-repeats.",
+                      .advanced = true,
+                      .validator = sharg::arithmetic_range_validator{0.001, 0.99}});
     parser.add_flag(arguments.keep_all_repeats,
                     sharg::config{.short_id = '\0',
                     .long_id = "keep-all-repeats",
