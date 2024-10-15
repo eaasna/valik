@@ -33,7 +33,6 @@ std::filesystem::path get_output_path(std::filesystem::path const & output_dir, 
 
 void compute_minimiser(valik::build_arguments const & arguments)
 {
-    seqan3::detail::execution_handler_parallel executioner{arguments.threads};
     if (arguments.bin_path.size() > 1)
     {
         file_reader<file_types::sequence> const reader{arguments.shape, arguments.window_size};
@@ -95,6 +94,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
         size_t const chunk_size =
             std::max<size_t>(1, std::floor(arguments.bin_path.size() / static_cast<double>(arguments.threads)));
         auto chunked_view = seqan3::views::zip(arguments.bin_path, std::views::iota(0u)) | seqan3::views::chunk(chunk_size);
+        seqan3::detail::execution_handler_parallel executioner{arguments.threads};
         executioner.bulk_execute(std::move(cluster_worker), std::move(chunked_view), []() {});
     }
     else
@@ -106,6 +106,8 @@ void compute_minimiser(valik::build_arguments const & arguments)
         {
             for (auto && [shared_record, bin_number] : zipped_view)
             {
+                //!TODO: bin number is not used. How to construct view of shared records to fulfill execution handler requirements? 
+                //seqan3::debug_stream << bin_number << '\n';
                 auto const & seg = shared_record.segment;
 
                 std::filesystem::path output_path = get_output_path(arguments.out_dir, file_name, seg.id);
@@ -179,8 +181,9 @@ void compute_minimiser(valik::build_arguments const & arguments)
                 if (reference_records.size() == arguments.threads)
                 {
                     auto chunked_view = seqan3::views::zip(reference_records, std::views::iota(processed_bin_count)) | seqan3::views::chunk(1u);
-                    processed_bin_count += reference_records.size();
+                    seqan3::detail::execution_handler_parallel executioner{arguments.threads};
                     executioner.bulk_execute(std::move(segment_worker), std::move(chunked_view), []() {});
+                    processed_bin_count += reference_records.size();
                     reference_records.clear();
                 }  
             }
@@ -189,7 +192,8 @@ void compute_minimiser(valik::build_arguments const & arguments)
 
         if (!reference_records.empty())
         {
-            auto chunked_view = seqan3::views::zip(reference_records, std::views::iota(0u)) | seqan3::views::chunk(1u);
+            seqan3::detail::execution_handler_parallel executioner{reference_records.size()};
+            auto chunked_view = seqan3::views::zip(reference_records, std::views::iota(processed_bin_count)) | seqan3::views::chunk(1u);
             executioner.bulk_execute(std::move(segment_worker), std::move(chunked_view), []() {});
         }
     }
