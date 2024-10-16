@@ -202,7 +202,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
 namespace detail
 {
 
-size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> const & bin_path, uint8_t const threads)
+size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> const & minimiser_bin_path, uint8_t const threads)
 {
     std::mutex callback_mutex{};
     size_t max_filesize{};
@@ -241,7 +241,7 @@ size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> con
         callback(biggest_file, max_filesize);
     };
 
-    valik::call_parallel_on_bins(worker, bin_path, threads);
+    valik::call_parallel_on_bins(worker, minimiser_bin_path, threads);
 
     std::string shape_string{};
     uint64_t window_size{};
@@ -254,14 +254,10 @@ size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> con
     return max_count;
 }
 
-size_t kmer_count_from_sequence_files(std::vector<std::vector<std::string>> const & bin_path,
-                                      uint8_t const threads,
-                                      seqan3::shape const & shape,
-                                      uint32_t const window_size)
+size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
 {
     size_t max_count{};
     std::mutex callback_mutex{};
-    file_reader<file_types::sequence> const reader{shape, window_size};
 
     auto callback = [&callback_mutex, &max_count](auto && view)
     {
@@ -271,15 +267,73 @@ size_t kmer_count_from_sequence_files(std::vector<std::vector<std::string>> cons
             max_count = std::max<size_t>(max_count, count);
         }
     };
-
-    auto worker = [&callback, &reader](auto && zipped_view, auto &&)
+    
+    if (arguments.bin_path.size() > 1)
     {
-        for (auto && [file_names, bin_number] : zipped_view)
-            reader.on_hash(file_names, callback);
-    };
+        file_reader<file_types::sequence> const reader{arguments.shape, arguments.window_size};
 
-    // callback max_count which is the max number of k-mers in any sequence 
-    valik::call_parallel_on_bins(worker, bin_path, threads);
+        auto cluster_worker = [&callback, &reader](auto && zipped_view, auto &&)
+        {
+            for (auto && [file_names, bin_number] : zipped_view)
+                reader.on_hash(file_names, callback);
+        };
+
+        // callback max_count which is the max number of k-mers in any sequence 
+        valik::call_parallel_on_bins(cluster_worker, arguments.bin_path, arguments.threads);
+    }
+    else
+    {
+        using sequence_t = seqan3::dna4_vector;
+        using sequence_file_t = seqan3::sequence_file_input<dna4_traits, seqan3::fields<seqan3::field::seq>>;
+        std::vector<valik::shared_reference_record<sequence_t>> reference_records;
+        reference_records.reserve(arguments.threads);
+        size_t seq_ind{0};
+        size_t processed_bin_count{0};
+
+        auto hash_view = [&] ()
+        {
+            return seqan3::views::minimiser_hash(arguments.shape,
+                                                 seqan3::window_size{arguments.window_size},
+                                                 seqan3::seed{adjust_seed(arguments.shape.count())});
+        };
+
+        auto segment_worker = [&callback, &hash_view](const auto && zipped_view, auto &&)
+        {
+            for (auto && [shared_record, bin_number] : zipped_view)
+            {
+                //!TODO: bin number is not used. How to construct view of shared records to fulfill execution handler requirements? 
+                //seqan3::debug_stream << bin_number << '\n';
+                auto const & seg = shared_record.segment;
+                callback(*shared_record.underlying_sequence | seqan3::views::slice(seg.start, seg.start + seg.len) | hash_view());
+            }
+        };
+
+        for (auto && [seq] : sequence_file_t{arguments.bin_path[0][0]})
+        {
+            valik::metadata meta(arguments.ref_meta_path);
+            auto shared_seq = std::make_shared<sequence_t>(seq);
+            for (auto && seg : meta.segments_from_ind(seq_ind))
+            {
+                reference_records.emplace_back(shared_seq, std::move(seg));
+                if (reference_records.size() == arguments.threads)
+                {
+                    auto chunked_view = seqan3::views::zip(reference_records, std::views::iota(processed_bin_count)) | seqan3::views::chunk(1u);
+                    seqan3::detail::execution_handler_parallel executioner{arguments.threads};
+                    executioner.bulk_execute(std::move(segment_worker), std::move(chunked_view), []() {});
+                    processed_bin_count += reference_records.size();
+                    reference_records.clear();
+                }  
+            }
+            seq_ind++;
+        }
+
+        if (!reference_records.empty())
+        {
+            seqan3::detail::execution_handler_parallel executioner{reference_records.size()};
+            auto chunked_view = seqan3::views::zip(reference_records, std::views::iota(processed_bin_count)) | seqan3::views::chunk(1u);
+            executioner.bulk_execute(std::move(segment_worker), std::move(chunked_view), []() {});
+        }
+    }
 
     return max_count;
 }
@@ -297,14 +351,7 @@ size_t compute_bin_size(valik::build_arguments const & arguments)
 
     size_t max_count = arguments.input_is_minimiser
                                ? detail::kmer_count_from_minimiser_files(minimiser_files, arguments.threads)
-                               : detail::kmer_count_from_sequence_files(arguments.bin_path,
-                                                                        arguments.threads,
-                                                                        arguments.shape,
-                                                                        arguments.window_size);
-
-    //!TODO: it would be more exact to count the k-mers in the largest segment instead of averaging across the whole sequence 
-    if ((arguments.bin_path.size() == 1) && (!arguments.input_is_minimiser))
-        max_count /= (arguments.bins * 0.9);    // assume the biggest bin is 10% bigger than the average
+                               : detail::kmer_count_from_sequence_files(arguments);
 
     assert(max_count > 0u);
 
