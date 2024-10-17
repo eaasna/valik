@@ -259,13 +259,10 @@ size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
     size_t max_count{};
     std::mutex callback_mutex{};
 
-    auto callback = [&callback_mutex, &max_count](auto && view)
+    auto callback = [&callback_mutex, &max_count](size_t const count)
     {
-        auto const count = std::ranges::distance(view);
-        {
-            std::lock_guard<std::mutex> guard{callback_mutex};
-            max_count = std::max<size_t>(max_count, count);
-        }
+        std::lock_guard<std::mutex> guard{callback_mutex};
+        max_count = std::max<size_t>(max_count, count);
     };
     
     if (arguments.bin_path.size() > 1)
@@ -274,8 +271,14 @@ size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
 
         auto cluster_worker = [&callback, &reader](auto && zipped_view, auto &&)
         {
+            std::unordered_set<uint64_t> kmers;
+            auto insert_it = std::inserter(kmers, kmers.end());
             for (auto && [file_names, bin_number] : zipped_view)
-                reader.on_hash(file_names, callback);
+            {
+                kmers.clear();
+                reader.hash_into(file_names, insert_it);
+                callback(kmers.size());
+            }   
         };
 
         // callback max_count which is the max number of k-mers in any sequence 
@@ -299,12 +302,18 @@ size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
 
         auto segment_worker = [&callback, &hash_view](const auto && zipped_view, auto &&)
         {
+            std::unordered_set<uint64_t> kmers;
+            auto insert_it = std::inserter(kmers, kmers.end());
             for (auto && [shared_record, bin_number] : zipped_view)
             {
+                kmers.clear();
                 //!TODO: bin number is not used. How to construct view of shared records to fulfill execution handler requirements? 
                 //seqan3::debug_stream << bin_number << '\n';
                 auto const & seg = shared_record.segment;
-                callback(*shared_record.underlying_sequence | seqan3::views::slice(seg.start, seg.start + seg.len) | hash_view());
+                std::ranges::copy(*shared_record.underlying_sequence | 
+                                  seqan3::views::slice(seg.start, seg.start + seg.len) | hash_view(), insert_it);
+
+                callback(kmers.size());
             }
         };
 
