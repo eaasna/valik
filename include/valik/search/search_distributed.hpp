@@ -160,7 +160,7 @@ bool search_distributed(search_arguments & arguments, search_time_statistics & t
     else
     {
         raptor::threshold::threshold const thresholder{arguments.make_threshold_parameters()};
-        iterate_distributed_queries(arguments, index.ibf(), thresholder, queue);
+        iterate_distributed_queries(arguments, index, thresholder, queue);
 
     }
     queue.finish(); // Flush carts that are not empty yet

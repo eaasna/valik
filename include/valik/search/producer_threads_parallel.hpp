@@ -21,8 +21,8 @@ namespace valik::app
 /**
  * @brief Create parallel prefiltering jobs.
 */
-template <typename query_t, seqan3::data_layout ibf_data_layout>
-inline void prefilter_queries_parallel(seqan3::interleaved_bloom_filter<ibf_data_layout> const & ibf,
+template <typename query_t, typename index_t>
+inline void prefilter_queries_parallel(index_t const & index,
                                        search_arguments const & arguments,
                                        std::vector<query_t> const & records,
                                        raptor::threshold::threshold const & thresholder,
@@ -43,26 +43,32 @@ inline void prefilter_queries_parallel(seqan3::interleaved_bloom_filter<ibf_data
 
         std::span<query_t const> records_slice{&records[start], &records[end]};
 
-        auto prefilter_cb = [&queue,&arguments,&verbose_out,&ibf](query_t const & record, 
-                                                                  std::unordered_map<size_t, size_t> const & bin_hits, 
-                                                                  uint64_t const & total_pattern_hits)
+        auto prefilter_cb = [&queue,&arguments,&verbose_out,&index](query_t const & record, 
+                                                                  std::unordered_set<size_t> const & bin_hits)
         {
+            auto & ibf = index.ibf();
             if (bin_hits.size() > std::max((size_t) 4, (size_t) std::round(ibf.bin_count() / 2.0)))
             {
                 if (arguments.verbose)
                     verbose_out.write_warning(record, bin_hits.size());
-                if (arguments.keep_best_repeats)    // keep bin hits that are supported by the most patterns per query segment
+                if (arguments.keep_best_repeats)    // keep hits for bins with the highest entropy
                 {
-                    size_t mean_bin_support = std::max((size_t) 2, (size_t) std::round((double) total_pattern_hits / (double) bin_hits.size()));
-                    for (auto const [bin, count] : bin_hits)
+                    auto const & entropy_ranking = index.entropy_ranking();
+                    size_t inserted_bins{0};
+                    for (size_t bin : entropy_ranking)
                     {
-                        if (count > mean_bin_support)
+                        if (bin_hits.count(bin) > 0)
+                        {
                             queue.insert(bin, record);
+                            inserted_bins++;
+                        }
+                        if (inserted_bins >= std::max((size_t) 4, (size_t) std::round(ibf.bin_count() * arguments.best_bin_entropy_cutoff)))
+                            return;
                     }
                 }
                 else if (arguments.keep_all_repeats)
                 {
-                    for (auto const [bin, count] : bin_hits)
+                    for (auto & bin : bin_hits)
                     {
                         queue.insert(bin, record);
                     }
@@ -70,16 +76,16 @@ inline void prefilter_queries_parallel(seqan3::interleaved_bloom_filter<ibf_data
                 return;
             }
             
-            for (auto const [bin, count] : bin_hits)
+            for (auto const bin : bin_hits)
             {
                 queue.insert(bin, record);
             }
         };
 
         // The following calls `local_prefilter(records, ibf, arguments, threshold)` on a thread.
-        tasks.emplace_back([=, &ibf, &arguments, &thresholder]()
+        tasks.emplace_back([=, &index, &arguments, &thresholder]()
         {
-            local_prefilter(records_slice, ibf, arguments, thresholder, prefilter_cb);
+            local_prefilter(records_slice, index.ibf(), arguments, thresholder, prefilter_cb);
         });
     }
 }

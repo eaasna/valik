@@ -107,8 +107,7 @@ template <typename binning_bitvector_t>
 void find_pattern_bins(pattern_bounds const & pattern,
                         size_t const & bin_count,
                         binning_bitvector_t const & counting_table,
-                        std::unordered_map<size_t, size_t> & sequence_hits,
-                        uint64_t & pattern_hits)
+                        std::unordered_set<size_t> & sequence_hits)
 {
     // counting vector for the current pattern
     seqan3::counting_vector<uint8_t> total_counts(bin_count, 0);
@@ -121,8 +120,7 @@ void find_pattern_bins(pattern_bounds const & pattern,
         if (count >= pattern.threshold)
         {
             // the result is a union of results from all patterns of a read
-            sequence_hits[current_bin]++;
-            pattern_hits++;
+            sequence_hits.insert(current_bin);
         }
     }
 }
@@ -200,16 +198,14 @@ void local_prefilter(
 
         minimiser.clear();
 
-        uint64_t pattern_hits{0};
-        // {bin ID, pattern hit count}
-        std::unordered_map<size_t, size_t> sequence_hits{};
+        std::unordered_set<size_t> sequence_hits{};
         pattern_begin_positions(seq.size(), arguments.pattern_size, arguments.query_every, [&](size_t const begin)
         {
             pattern_bounds const pattern = make_pattern_bounds(begin, arguments, window_span_begin, thresholder);
-            find_pattern_bins(pattern, bin_count, counting_table, sequence_hits, pattern_hits);
+            find_pattern_bins(pattern, bin_count, counting_table, sequence_hits);
         });
 
-        result_cb(record, sequence_hits, pattern_hits);
+        result_cb(record, sequence_hits);
     }
 }
 

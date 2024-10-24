@@ -15,13 +15,13 @@ namespace valik::app
  * @brief Function that sends chunks of queries to the prefilter which then writes shopping carts onto disk.
  *
  * @param arguments Command line arguments.
- * @param ibf Interleaved Bloom Filter.
+ * @param index Valik index of the reference database.
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between prefiltering and Stellar search.
  */
-template <typename ibf_t, typename cart_queue_t>
+template <typename index_t, typename cart_queue_t>
 void iterate_distributed_queries(search_arguments const & arguments,
-                                 ibf_t const & ibf,
+                                 index_t const & index,
                                  raptor::threshold::threshold const & thresholder,
                                  cart_queue_t & queue)
 {
@@ -34,7 +34,7 @@ void iterate_distributed_queries(search_arguments const & arguments,
         for (auto && fasta_record: chunked_records)
             query_records.emplace_back(std::move(fasta_record.id()), std::move(fasta_record.sequence()));
 
-        prefilter_queries_parallel(ibf, arguments, query_records, thresholder, queue);
+        prefilter_queries_parallel(index, arguments, query_records, thresholder, queue);
     }
 }
 
@@ -89,15 +89,15 @@ void iterate_all_queries(size_t const ref_seg_count,
 /**
  * @brief Function that creates short query records from fasta file input and sends them for prefiltering.
  *
- * @tparam ibf_t Interleaved Bloom Filter type.
+ * @tparam index_t Valik index type containing Interleaved Bloom Filter.
  * @param arguments Command line arguments.
- * @param ibf Interleaved Bloom Filter of the reference database.
+ * @param infex Valik index of the reference database.
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between Valik prefiltering and Stellar search.
  */
-template <typename ibf_t, typename TSequence>
+template <typename index_t, typename TSequence>
 void iterate_short_queries(search_arguments const & arguments,
-                           ibf_t const & ibf,
+                           index_t const & index,
                            raptor::threshold::threshold const & thresholder,
                            cart_queue<shared_query_record<TSequence>> & queue)
 {
@@ -126,7 +126,7 @@ void iterate_short_queries(search_arguments const & arguments,
 
         if (query_records.size() > chunk_size)
         {
-            prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
+            prefilter_queries_parallel<shared_query_record<TSequence>>(index, arguments, query_records, thresholder, queue);
             query_records.clear();
         }
     }
@@ -134,22 +134,22 @@ void iterate_short_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
+    prefilter_queries_parallel<shared_query_record<TSequence>>(index, arguments, query_records, thresholder, queue);
 }
 
 /**
  * @brief Function that creates split query records from fasta file input and sends them for prefiltering.
  *
- * @tparam ibf_t Interleaved Bloom Filter type.
+ * @tparam index_t Valik index type containing Interleaved Bloom Filter.
  * @param arguments Command line arguments.
- * @param ibf Interleaved Bloom Filter of the reference database.
+ * @param index Valik index of the reference database.
  * @param thresholder Threshold for number of shared k-mers.
  * @param queue Shopping cart queue for load balancing between Valik prefiltering and Stellar search.
  * @param meta Metadata table for split query segments.
  */
-template <typename ibf_t, typename TSequence>
+template <typename index_t, typename TSequence>
 void iterate_split_queries(search_arguments const & arguments,
-                           ibf_t const & ibf,
+                           index_t const & index,
                            raptor::threshold::threshold const & thresholder,
                            cart_queue<shared_query_record<TSequence>> & queue,
                            metadata & meta)
@@ -184,7 +184,7 @@ void iterate_split_queries(search_arguments const & arguments,
 
             if (query_records.size() > chunk_size)
             {
-                prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
+                prefilter_queries_parallel<shared_query_record<TSequence>>(index, arguments, query_records, thresholder, queue);
                 query_records.clear();  // shared pointers are erased -> memory is deallocated
             }
         }
@@ -193,7 +193,7 @@ void iterate_split_queries(search_arguments const & arguments,
     if (!idsUnique)
         std::cerr << "WARNING: Non-unique query ids. Output can be ambiguous.\n";
 
-    prefilter_queries_parallel<shared_query_record<TSequence>>(ibf, arguments, query_records, thresholder, queue);
+    prefilter_queries_parallel<shared_query_record<TSequence>>(index, arguments, query_records, thresholder, queue);
 }
 
 }   // namespace valik::app
