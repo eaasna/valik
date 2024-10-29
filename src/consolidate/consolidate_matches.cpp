@@ -25,45 +25,49 @@ void consolidate_matches(search_arguments const & arguments)
 
     //seqan3::debug_stream << before_duplicate_removal << '\t' << matches.size() << '\n';
     // <query_ind, <refs>>
-    std::set<std::string> overabundant_queries{}; 
-    std::set<std::string> disabled_queries{};
+    std::unordered_multimap<std::string, std::string> overabundant_pairs{}; 
+    std::unordered_set<std::string> disabled_queries{};
 
-    // <query_ind, match_count>>
-    std::map<std::string, size_t> total_match_counter{};
-    
+    // <query_id, <ref_id, match_count>>
+    std::unordered_map<std::string, std::unordered_map<std::string, size_t>> total_match_counter{};
     decltype(matches) consolidated_matches{};
     
     for (auto & match : matches)
     {
-        if ( total_match_counter[match.qname] < arguments.disableThresh )
+        if ( total_match_counter[match.qname][match.dname] < arguments.disableThresh )
         {
-            total_match_counter[match.qname]++;
+            total_match_counter[match.qname][match.dname]++;
         }
     }
     
     // for <query, ref> pairs that do not appear often return all matches
     for (auto & match : matches)
     {
-        bool is_disabled = total_match_counter[match.qname] >= arguments.disableThresh;
-        bool is_overabundant = total_match_counter[match.qname] > arguments.numMatches;
+        size_t query_match_count{0};
+        for (auto & it : total_match_counter[match.qname])
+            query_match_count += it.second;
+
+        bool is_disabled = query_match_count >= arguments.disableThresh;
+        bool is_overabundant = total_match_counter[match.qname][match.dname] > arguments.numMatches;
          
         if (!is_overabundant && !is_disabled)
             consolidated_matches.emplace_back(match);
         else if (is_disabled)
             disabled_queries.emplace(match.qname);
         else
-            overabundant_queries.emplace(match.qname);
+            overabundant_pairs.emplace(match.qname, match.dname);
     }
 
     // for <query, ref> pairs that appear often return arguments.numMatches longest matches
-    for (auto & query_id : overabundant_queries)
+    for (auto & it : overabundant_pairs)
     {
         std::vector<stellar_match> overabundant_matches{};
-        auto is_query_match = [&](auto & m){
-                                                return (m.qname == query_id);
-                                            };
+        auto is_overabundant_match = [&](auto & m)
+        {
+            return ((m.qname == it.first) && (m.dname == it.second));
+        };
 
-        for (auto & m : matches | std::views::filter(is_query_match))
+        for (auto & m : matches | std::views::filter(is_overabundant_match))
         {
             overabundant_matches.push_back(m);
         }
@@ -73,12 +77,12 @@ void consolidate_matches(search_arguments const & arguments)
     }
 
     // debug
-    if (arguments.verbose && !overabundant_queries.empty())
+    if (arguments.verbose && !overabundant_pairs.empty())
     {
-        seqan3::debug_stream << "Overabundant queries\n";
-        for (auto & query_id : overabundant_queries)
+        seqan3::debug_stream << "Overabundant pairs\n";
+        for (auto & it : overabundant_pairs)
         {
-            seqan3::debug_stream << query_id << '\n'; 
+            seqan3::debug_stream << it.first << '\t' << it.second << '\n'; 
         }
     }
     
