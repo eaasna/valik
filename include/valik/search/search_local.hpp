@@ -84,6 +84,9 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     metadata ref_meta = metadata(arguments.ref_meta_path);
     if (stellar_only)
     {
+        for (auto & f : ref_meta.files)
+            arguments.bin_path.push_back(std::vector<std::string>{f.path});
+
         auto prefilter_bin_count = ref_meta.seg_count;
         split_arguments stellar_dist_arguments;
         // distribute stellar search
