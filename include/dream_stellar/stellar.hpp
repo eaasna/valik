@@ -273,6 +273,23 @@ _stellarKernel(StellarSwiftFinder<TAlphabet> & finder,  // iterate over database
                stellar_kernel_runtime & stellar_kernel_runtime) {
     StellarComputeStatistics statistics{};
 
+    //!TODO: the pattern is non-const here. Where is it being updated?
+    std::cout << "stellarKernel\n";
+    auto const & index = host(pattern);
+    std::cout << "BucketMap qgramCode length\t" << seqan2::length(index.bucketMap.qgramCode) << '\n'; 
+    std::cout << "BucketMap qgramCode length\t" << seqan2::length(seqan2::indexDir(index)) << '\n';
+    /*
+    for (uint64_t i{1}; i < seqan2::length(index.bucketMap.qgramCode); i++)
+    {
+        uint64_t bucketBegin = index.bucketMap.qgramCode[i - 1];
+        uint64_t bucketEnd = index.bucketMap.qgramCode[i];
+        if (bucketBegin > bucketEnd)
+        {
+            std::cout << "Error: bucketBegin > bucketEnd\n" << bucketBegin << " > " << bucketEnd << "\n";
+        }
+    }
+    */
+
     while (true) {
 
         bool const has_next = stellar_kernel_runtime.swift_filter_time.measure_time([&]()
