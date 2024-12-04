@@ -232,7 +232,7 @@ void run_search(sharg::parser & parser)
     }
     else
     {
-        //TODO: this can be removed?
+        //!TODO: can this be removed?
         if (arguments.split_query && arguments.manual_parameters)
         {
             throw std::runtime_error{"Provide the chosen number of query segments with --seg-count "
@@ -337,26 +337,25 @@ void run_search(sharg::parser & parser)
         }
     }
 
-    if (!arguments.stellar_only)
+    if (!arguments.manual_parameters)
     {
         // ==========================================
         // Extract data from reference metadata.
         // ==========================================
-        if (!arguments.manual_parameters)
+        if (!parser.is_option_set("ref-meta"))
+            throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
+
+        std::filesystem::path search_profile_file{arguments.ref_meta_path};
+        search_profile_file.replace_extension("arg");
+        sharg::input_file_validator argument_input_validator{{"arg"}};
+        argument_input_validator(search_profile_file);
+        search_kmer_profile search_profile{search_profile_file};
+
+        arguments.pattern_size = search_profile.l;
+        arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
+        
+        if (!arguments.stellar_only)
         {
-            if (!parser.is_option_set("ref-meta"))
-                throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
-
-            std::filesystem::path search_profile_file{arguments.ref_meta_path};
-            search_profile_file.replace_extension("arg");
-            sharg::input_file_validator argument_input_validator{{"arg"}};
-            argument_input_validator(search_profile_file);
-            search_kmer_profile search_profile{search_profile_file};
-
-
-
-            arguments.pattern_size = search_profile.l;
-            arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
             search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
             // seg_count is inferred in metadata constructor
             arguments.search_type = error_profile.search_type;
@@ -403,11 +402,12 @@ void run_search(sharg::parser & parser)
 
         if (!parser.is_option_set("p_max") && arguments.fast)
             arguments.p_max = 0.05;
+        else
+        {
+            arguments.search_type = search_kind::STELLAR;
+        }
     }
-    else
-    {
-        arguments.search_type = search_kind::STELLAR;
-    }
+
 
     // ==========================================
     // Dispatch
