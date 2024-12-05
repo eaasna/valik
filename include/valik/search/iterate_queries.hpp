@@ -7,6 +7,7 @@
 #include <dream_stellar/io/import_sequence.hpp>
 
 #include <seqan/seq_io.h>
+#include <seqan3/core/debug_stream.hpp>
 
 namespace valik::app
 {
@@ -69,6 +70,7 @@ void iterate_all_queries(size_t const ref_seg_count,
         TSequence seq{};
         TId id{};
         readRecord(id, seq, inSeqs);
+        //seqan3::debug_stream << "Read query " << id << '\n';
         idsUnique &= dream_stellar::_checkUniqueId(uniqueIds, id);
 
         query_records.emplace_back(std::move(seq), seqan2::toCString(std::move(id)));

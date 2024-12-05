@@ -15,7 +15,6 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                       sharg::config{.short_id = '\0',
                       .long_id = "index",
                       .description = "Provide a valid path to an IBF.",
-                      .required = true,
                       .validator = sharg::input_file_validator{}});
     parser.add_option(arguments.query_file,
                       sharg::config{.short_id = '\0',
@@ -74,6 +73,11 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
     /////////////////////////////////////////
     // Advanced options
     /////////////////////////////////////////
+    parser.add_flag(arguments.stellar_only,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "stellar-only",
+                      .description = "Do not prefilter before Stellar search.",
+                      .advanced = true});
     parser.add_flag(arguments.manual_parameters,
                       sharg::config{.short_id = '\0',
                       .long_id = "without-parameter-tuning",
@@ -228,7 +232,7 @@ void run_search(sharg::parser & parser)
     }
     else
     {
-        //TODO: this can be removed?
+        //!TODO: can this be removed?
         if (arguments.split_query && arguments.manual_parameters)
         {
             throw std::runtime_error{"Provide the chosen number of query segments with --seg-count "
@@ -252,19 +256,27 @@ void run_search(sharg::parser & parser)
         throw sharg::validation_error{"Invalid parameter values: Please choose numMatches <= sortThresh.\n"};
 
 
-    // ==========================================
-    // Read window and kmer size, and the bin paths.
-    // ==========================================
+    if (!arguments.stellar_only && !parser.is_option_set("index"))
     {
-        std::ifstream is{arguments.index_file.string(),std::ios::binary};
-        cereal::BinaryInputArchive iarchive{is};
-        valik_index<> tmp{};
-        tmp.load_parameters(iarchive);
-        arguments.shape = tmp.shape();
-        arguments.shape_size = arguments.shape.size();
-        arguments.shape_weight = arguments.shape.count();
-        arguments.window_size = tmp.window_size();
-        arguments.bin_path = tmp.bin_path();
+        throw sharg::parser_error{"Option --index is required but not set."};
+    }
+
+    if (!arguments.stellar_only)
+    {
+        // ==========================================
+        // Read window and kmer size, and the bin paths.
+        // ==========================================
+        {
+            std::ifstream is{arguments.index_file.string(),std::ios::binary};
+            cereal::BinaryInputArchive iarchive{is};
+            valik_index<> tmp{};
+            tmp.load_parameters(iarchive);
+            arguments.shape = tmp.shape();
+            arguments.shape_size = arguments.shape.size();
+            arguments.shape_weight = arguments.shape.count();
+            arguments.window_size = tmp.window_size();
+            arguments.bin_path = tmp.bin_path();
+        }
     }
 
     // ==========================================
@@ -294,7 +306,7 @@ void run_search(sharg::parser & parser)
     // ==========================================
     // Process manual threshold.
     // ==========================================
-    if (parser.is_option_set("threshold"))
+    if (parser.is_option_set("threshold") && !arguments.stellar_only)
     {
         if (!arguments.manual_parameters)
         {
@@ -325,11 +337,11 @@ void run_search(sharg::parser & parser)
         }
     }
 
-    // ==========================================
-    // Extract data from reference metadata.
-    // ==========================================
     if (!arguments.manual_parameters)
     {
+        // ==========================================
+        // Extract data from reference metadata.
+        // ==========================================
         if (!parser.is_option_set("ref-meta"))
             throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
 
@@ -339,57 +351,64 @@ void run_search(sharg::parser & parser)
         argument_input_validator(search_profile_file);
         search_kmer_profile search_profile{search_profile_file};
 
-
-        
         arguments.pattern_size = search_profile.l;
         arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);    // update based on pattern size in metadata
-        search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
-        // seg_count is inferred in metadata constructor
-        arguments.search_type = error_profile.search_type;
-        if (arguments.search_type == search_kind::STELLAR)
+        
+        if (!arguments.stellar_only)
         {
-            std::cout << "Can not prefilter matches of length " << std::to_string(error_profile.pattern.l) << 
-                                     " with " << std::to_string(error_profile.pattern.e) << " errors. Searching without prefiltering.\n";
-            arguments.fnr = 0.0;
+            search_error_profile error_profile = search_profile.get_error_profile(arguments.errors);
+            // seg_count is inferred in metadata constructor
+            arguments.search_type = error_profile.search_type;
+            if (arguments.search_type == search_kind::STELLAR)
+            {
+                std::cout << "Can not prefilter matches of length " << std::to_string(error_profile.pattern.l) << 
+                                         " with " << std::to_string(error_profile.pattern.e) << " errors. Searching without prefiltering.\n";
+                arguments.fnr = 0.0;
+            }
+            else
+            {
+                arguments.max_segment_len = max_segment_len(error_profile.fp_per_pattern, arguments.pattern_size, arguments.query_every);
+                arguments.threshold = error_profile.params.t;
+                arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
+                if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
+                    throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
+                arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
+                arguments.fnr = error_profile.fnr;
+            }
+
+            if (arguments.window_size > arguments.shape_size)
+                arguments.search_type = search_kind::MINIMISER;
+        }
+
+        // ==========================================
+        // More checks.
+        // ==========================================
+        if (parser.is_option_set("query-every"))
+        {
+            if (arguments.query_every > arguments.pattern_size)
+                throw sharg::validation_error("Reduce --query-every so that all positions in the query would be considered at least once."); 
         }
         else
         {
-            arguments.max_segment_len = max_segment_len(error_profile.fp_per_pattern, arguments.pattern_size, arguments.query_every);
-            arguments.threshold = error_profile.params.t;
-            arguments.threshold_was_set = true;  // use raptor::threshold_kinds::percentage
-            if (arguments.threshold > arguments.pattern_size - arguments.shape.size() + 1)
-                throw sharg::validation_error("Threshold can not be larger than the number of k-mers per pattern.");
-            arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
-            arguments.fnr = error_profile.fnr;
+            if (arguments.fast)
+                arguments.query_every = 3;
         }
 
-        if (arguments.window_size > arguments.shape_size)
-            arguments.search_type = search_kind::MINIMISER;
+        // ==========================================
+        // Set strict thresholding parameters for fast mode.
+        // ==========================================
+        if (!parser.is_option_set("tau") && arguments.fast)
+            arguments.tau = 0.99999;
+
+        if (!parser.is_option_set("p_max") && arguments.fast)
+            arguments.p_max = 0.05;
+        else
+        {
+            arguments.search_type = search_kind::STELLAR;
+        }
     }
 
-    // ==========================================
-    // More checks.
-    // ==========================================
-    if (parser.is_option_set("query-every"))
-    {
-        if (arguments.query_every > arguments.pattern_size)
-            throw sharg::validation_error("Reduce --query-every so that all positions in the query would be considered at least once."); 
-    }
-    else
-    {
-        if (arguments.fast)
-            arguments.query_every = 3;
-    }
 
-    // ==========================================
-    // Set strict thresholding parameters for fast mode.
-    // ==========================================
-    if (!parser.is_option_set("tau") && arguments.fast)
-        arguments.tau = 0.99999;
-
-    if (!parser.is_option_set("p_max") && arguments.fast)
-        arguments.p_max = 0.05;
-    
     // ==========================================
     // Dispatch
     // ==========================================
