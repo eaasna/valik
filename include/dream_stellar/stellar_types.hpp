@@ -75,7 +75,7 @@ struct StellarStatistics
         kMerComputed = options.qGram == (size_t)-1;
 
         if (kMerComputed)
-            kMerLength = std::min(std::max(1u, smin), 32u);
+            kMerLength = std::min(std::max(1u, smin), 31u);
 
         if (kMerLength > (unsigned)options.minLength)
             throw std::domain_error{"qGram must be smaller than minLength."};
