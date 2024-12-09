@@ -31,20 +31,17 @@ jobs:
       matrix:
         include:
           - name: "gcc14"
-            cxx: "g++-14"
-            cc: "gcc-14"
+            compiler: "gcc-14"
             build_type: Release
             cxx_flags: "-std=c++23"
 
           - name: "gcc13"
-            cxx: "g++-13"
-            cc: "gcc-13"
+            compiler: "gcc-13"
             build_type: Release
             cxx_flags: "-std=c++23"
 
           - name: "gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
+            compiler: "gcc-12"
             build_type: Release
             cxx_flags: "-std=c++23"
     steps:
@@ -67,9 +64,9 @@ jobs:
       - name: Install ccache
         run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_via_brew.sh ccache
 
-      - name: Install compiler ${{ matrix.cxx }}
+      - name: Install compiler ${{ matrix.compiler }}
         env:
-          CC: ${{ matrix.cc }}
+          CC: ${{ matrix.compiler }}
         run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_via_brew.sh $(echo ${CC/clang/llvm} | awk -F '-' '{print $1, $2}')
 
       - name: Load ccache
@@ -86,14 +83,13 @@ jobs:
       - name: Tool versions
         run: |
           env cmake --version
-          env ${{ matrix.cxx }} --version
+          env ${{ matrix.compiler }} --version
           sudo xcode-select -s '/Applications/Xcode_13.4.1.app/Contents/Developer' # https://github.com/actions/runner-images/issues/6350
 
 
       - name: Configure tests
         env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
+          COMPILER: ${{ matrix.compiler }}
         run: |
           mkdir build
           cd build

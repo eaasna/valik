@@ -27,7 +27,7 @@ jobs:
       matrix:
         include:
           - name: "gcc14"
-            cxx: "g++-14"
+            cxx: "gcc-14"
             cc: "gcc-14"
             build: unit
             build_type: Release
