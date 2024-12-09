@@ -26,23 +26,15 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - name: "gcc14"
-            cxx: "gcc-14"
-            cc: "gcc-14"
-            build: unit
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "gcc13"
-            cxx: "g++-13"
-            cc: "gcc-13"
-            build: unit
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
           - name: "gcc12"
             cxx: "g++-12"
             cc: "gcc-12"
+            build: unit
+            build_type: Release
+            cxx_flags: "-std=c++23"
+          - name: "gcc11"
+            cxx: "g++-11"
+            cc: "gcc-11"
             build: unit
             build_type: Release
             cxx_flags: "-std=c++23"
