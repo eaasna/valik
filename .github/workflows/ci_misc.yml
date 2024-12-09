@@ -53,19 +53,7 @@ jobs:
             requires_ccache: true
             skip_build_tests: false
             skip_run_tests: true
-
-          - name: "Header gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
-            build_type: Release
-            build: header
-            build_threads: 2
-            test_threads: 2
-            cmake: 3.16.9
-            requires_toolchain: true
-            requires_ccache: true
-            skip_build_tests: false
-            skip_run_tests: true
+            
     steps:
       - name: Set repository name
         run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV

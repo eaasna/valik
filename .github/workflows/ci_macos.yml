@@ -24,28 +24,21 @@ defaults:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: macos-12
+    runs-on: macos-14
     timeout-minutes: 120
     strategy:
       fail-fast: true
       matrix:
         include:
           - name: "gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
+            compiler: "gcc-12"
             build_type: Release
             cxx_flags: "-std=c++23"
 
           - name: "gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
+            compiler: "gcc-11"
             build_type: Release
             cxx_flags: "-std=c++23"
-
-          - name: "gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
-            build_type: Release
     steps:
       - name: Set repository name
         run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
@@ -66,9 +59,9 @@ jobs:
       - name: Install ccache
         run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_via_brew.sh ccache
 
-      - name: Install compiler ${{ matrix.cxx }}
+      - name: Install compiler ${{ matrix.compiler }}
         env:
-          CC: ${{ matrix.cc }}
+          CC: ${{ matrix.compiler }}
         run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_via_brew.sh $(echo ${CC/clang/llvm} | awk -F '-' '{print $1, $2}')
 
       - name: Load ccache
@@ -85,14 +78,11 @@ jobs:
       - name: Tool versions
         run: |
           env cmake --version
-          env ${{ matrix.cxx }} --version
-          sudo xcode-select -s '/Applications/Xcode_13.4.1.app/Contents/Developer' # https://github.com/actions/runner-images/issues/6350
-
+          env ${{ matrix.compiler }} --version
 
       - name: Configure tests
         env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
+          COMPILER: ${{ matrix.compiler }}
         run: |
           mkdir build
           cd build
