@@ -308,7 +308,7 @@ struct metadata
 
             if (segments.size() != n)
             {
-                throw std::runtime_error("Error: Database was split into " + std::to_string(segments.size()) +
+                throw std::runtime_error("Database was split into " + std::to_string(segments.size()) +
                                          " instead of " + std::to_string(n) + " segments.");
             }
         }
@@ -373,6 +373,7 @@ struct metadata
 
             size_t len_lower_bound = default_seg_len / 10;
             // Check how many sequences are discarded for being too short
+            //!TODO: gather short sequences
             auto first_long_seq = std::find_if(sequences.begin(), sequences.end(), [&](auto const & seq){return (seq.len > len_lower_bound);});
             size_t discarded_short_sequences = first_long_seq - sequences.begin();
 
@@ -412,19 +413,15 @@ struct metadata
                                          std::to_string(arguments.pattern_size) + "bp.\nDecrease the overlap or the number of segments.");
             }
 
-            size_t len_lower_bound = default_seg_len / 10;
-            // Check how many sequences are discarded for being too short
-            auto first_long_seq = std::find_if(sequences.begin(), sequences.end(), [&](auto const & seq){return (seq.len > len_lower_bound);});
-            size_t discarded_short_sequences = first_long_seq - sequences.begin();
-
-            arguments.seg_count = std::max(arguments.seg_count, (uint32_t) (sequences.size() - discarded_short_sequences));
-            make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
+            auto seq_begin = sequences.begin();
+            make_equal_length_segments(arguments.pattern_size, seq_begin);
             seg_count = segments.size();
 
             std::stable_sort(sequences.begin(), sequences.end(), fasta_order());
             std::stable_sort(segments.begin(), segments.end(), fasta_order());
             for (size_t i = 0; i < segments.size(); i++)
                 segments[i].id = i;
+                
         }
 
         /**
@@ -467,7 +464,7 @@ struct metadata
 
             scan_database_sequences(arguments);
             if (arguments.manual_parameters && (segments.size() != arguments.seg_count))
-                seqan3::debug_stream << "WARNING: Database was split into " << segments.size() << " instead of " << arguments.seg_count << " segments.\n";
+                seqan3::debug_stream << "[Warning] Database was split into " << segments.size() << " instead of " << arguments.seg_count << " segments.\n";
 
             seq_count = sequences.size();
             seg_count = segments.size();

@@ -117,8 +117,10 @@ struct search_kmer_profile
     search_error_profile get_error_profile(uint8_t const errors)
     {
         if (error_table.find(errors) == error_table.end())
-            throw std::runtime_error("Error count " + std::to_string(errors) + " out of precalculated range");
-
+        {
+            auto highest_er = error_table.at(max_errors);
+            return {highest_er.params, highest_er.pattern, search_kind::STELLAR};
+        }
         return error_table.at(errors);
     }
 
