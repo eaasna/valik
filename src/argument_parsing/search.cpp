@@ -167,7 +167,7 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                     .long_id = "stellar-kmer",
                     .description = "STELLAR: Length of the q-grams in the SWIFT algorithm.",
                     .advanced = true,
-                    .validator = sharg::arithmetic_range_validator{1, 32}});
+                    .validator = sharg::arithmetic_range_validator{1, 31}});
     parser.add_option(arguments.qgramAbundanceCut,
                     sharg::config{.short_id = 'c',
                     .long_id = "abundanceCut",
