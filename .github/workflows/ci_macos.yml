@@ -38,7 +38,7 @@ jobs:
           - name: "gcc11"
             compiler: "gcc-11"
             build_type: Release
-            cxx_flags: "-std=c++23"
+            cxx_flags: "-std=c++20"
     steps:
       - name: Set repository name
         run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
