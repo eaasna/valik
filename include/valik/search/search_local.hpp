@@ -66,7 +66,7 @@ static inline dream_stellar::StellarOptions make_thread_options(search_arguments
 template <bool is_split, bool stellar_only>
 bool search_local(search_arguments & arguments, search_time_statistics & time_statistics)
 {
-    if (arguments.bin_path.size() > 1 || arguments.bin_path[0].size() > 1)
+    if (arguments.bin_path.size() > 1 || (arguments.bin_path.size() > 0 && arguments.bin_path[0].size() > 1))
         throw std::runtime_error("Multiple reference files can not be searched in shared memory mode. "
                                  "Add --distribute argument to launch multiple distributed instances of DREAM-Stellar search.");
 
@@ -84,10 +84,20 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     metadata ref_meta = metadata(arguments.ref_meta_path);
     if (stellar_only)
     {
+        arguments.bin_path.clear(); // in case inserted from index
+        for (auto & f : ref_meta.files)
+            arguments.bin_path.push_back(std::vector<std::string>{f.path});
+
         auto prefilter_bin_count = ref_meta.seg_count;
         split_arguments stellar_dist_arguments;
         // distribute stellar search
-        stellar_dist_arguments.seg_count = std::max(ref_meta.seq_count, (size_t) arguments.threads);
+        
+        // for some number of reference sequences split sequences into as many segments as is the next multiple of thread count
+        if (ref_meta.seq_count % arguments.threads > 0)
+            stellar_dist_arguments.seg_count = ref_meta.seq_count + (arguments.threads - ref_meta.seq_count % arguments.threads);
+        else
+            stellar_dist_arguments.seg_count = ref_meta.seq_count;
+
         stellar_dist_arguments.pattern_size = ref_meta.pattern_size;
         ref_meta.update_segments_for_distributed_stellar(stellar_dist_arguments);
         // update cart queue parameters for distributed stellar
@@ -208,7 +218,6 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
             for (auto next = queue.dequeue(); next; next = queue.dequeue())
             {
                 auto & [bin_id, records] = *next;
-
                 std::unique_lock g(mutex);
                 std::filesystem::path cart_queries_path = var_pack.tmp_path / std::string("query_" + std::to_string(bin_id) +
                                                           "_" + std::to_string(exec_meta.bin_count[bin_id]++) + ".fasta");
