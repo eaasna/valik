@@ -345,7 +345,6 @@ TEST_P(valik_search_clusters, search)
 
     cli_test_result const result = execute_app("valik", "search",
                                                         "--output search.gff",
-                                                        "--distribute",
                                                         "--pattern", std::to_string(pattern_size),
                                                         "--query-every", std::to_string(query_every),
                                                         "--error-rate ", std::to_string(error_rate),

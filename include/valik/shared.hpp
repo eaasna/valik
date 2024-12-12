@@ -136,7 +136,6 @@ struct search_profile_arguments
     //!TODO: deduce this automatically
     bool split_query{false}; 
     bool manual_parameters{false};
-    //!TODO: make fourth option: MINIMISER
     search_kind search_type{search_kind::LEMMA}; 
     double fnr;
 

@@ -275,6 +275,8 @@ void run_search(sharg::parser & parser)
         arguments.shape_weight = arguments.shape.count();
         arguments.window_size = tmp.window_size();
         arguments.bin_path = tmp.bin_path();
+        if (arguments.bin_path.size() > 1)
+            arguments.distribute = true;
     }
 
     // ==========================================
