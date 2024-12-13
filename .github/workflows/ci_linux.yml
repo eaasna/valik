@@ -32,17 +32,9 @@ jobs:
             build: unit
             build_type: Release
             cxx_flags: "-std=c++23"
-
           - name: "gcc11"
             cxx: "g++-11"
             cc: "gcc-11"
-            build: unit
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
             build: unit
             build_type: Release
             cxx_flags: "-std=c++20"
