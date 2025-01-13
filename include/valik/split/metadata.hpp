@@ -173,9 +173,8 @@ struct metadata
 
         inline bool operator() (segment_stats const & left, segment_stats const & right)
         {
-            if (left.seq_vec.size() > 1 || right.seq_vec.size() > 1)
-                throw std::runtime_error("Can't order sets of sets of sequences.");
-            return (left.seq_vec[0] < right.seq_vec[0]);
+            return std::min_element(left.seq_vec.begin(), left.seq_vec.end()) < 
+                   std::min_element(right.seq_vec.begin(), right.seq_vec.end()); 
         }
     };
 
@@ -372,25 +371,30 @@ struct metadata
             }
 
             size_t len_lower_bound = default_seg_len / 10;
-            // Check how many sequences are discarded for being too short
-            //!TODO: gather short sequences
             auto first_long_seq = std::find_if(sequences.begin(), sequences.end(), [&](auto const & seq){return (seq.len > len_lower_bound);});
-            size_t discarded_short_sequences = first_long_seq - sequences.begin();
+            size_t merged_short_sequences = first_long_seq - sequences.begin();
 
+            uint64_t merged_seg_len{0};
+            std::vector<size_t> merged_seg_ids;
             for (auto it = sequences.begin(); it < first_long_seq; it++)
             {
-                seqan3::debug_stream << "Sequence: " << (*it).id << " is too short and will be skipped.\n";
-                total_len -= (*it).len;
+                merged_seg_len += (*it).len;
+                merged_seg_ids.emplace_back((*it).ind);
+            }
+            if (!merged_seg_ids.empty())
+            {
+                total_len -= merged_seg_len;
+                add_segment(0u, merged_seg_ids, merged_seg_len);
             }
 
-            if (arguments.seg_count < (sequences.size() - discarded_short_sequences))
+            if (arguments.seg_count < (sequences.size() - merged_short_sequences))
             {
                 throw std::runtime_error("Can not split " + std::to_string(sequences.size()) +
                                          " sequences into " + std::to_string(arguments.seg_count) + " segments.");
             }
 
             if constexpr (std::is_same<arg_t, split_arguments>::value)
-                make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
+                make_exactly_n_segments(arguments.seg_count - segments.size(), arguments.pattern_size, first_long_seq);
             else
                 make_equal_length_segments(arguments.pattern_size, first_long_seq);
 
