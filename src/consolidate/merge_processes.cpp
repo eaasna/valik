@@ -13,9 +13,19 @@ bool merge_processes(search_arguments const & arguments,
     std::vector<std::string> merge_process_args;
     if (exec_meta.output_files.size() > 0)
     {
-        merge_process_args.push_back(var_pack.merge_exec);
+        size_t cat_files{0};
+        merge_process_args.push_back("cat"); 
         for (auto & path : exec_meta.output_files)
+        {
             merge_process_args.push_back(path);
+            cat_files++;
+            if (cat_files % 1024 == 0)
+            {
+                merge_process_args.push_back("|");
+                merge_process_args.push_back("cat");
+                merge_process_args.push_back("-");
+            }
+        }            
     }
     else
     {
@@ -34,7 +44,6 @@ bool merge_processes(search_arguments const & arguments,
     std::ofstream matches_out(merge_out_path);
 
     matches_out << merge.cout();
-
     for (auto & path : exec_meta.output_files)
     {
         const bool error_in_delete = !std::filesystem::remove(path);

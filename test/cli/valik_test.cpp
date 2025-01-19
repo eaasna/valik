@@ -352,8 +352,7 @@ TEST_P(valik_search_clusters, search)
                                                         "--query ", data("query.fq"),
                                                         "--threads 1",
                                                         "--cart-max-capacity 3",
-                                                        "--max-queued-carts 10",
-                                                        "--without-parameter-tuning");
+                                                        "--max-queued-carts 10");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_TRUE(result.err.starts_with("Could not clean up intermediate file"));
@@ -404,8 +403,7 @@ TEST_P(valik_search_segments, search)
                                                         "--threads 1",
                                                         "--ref-meta", segment_metadata_path(segment_overlap, number_of_bins),
                                                         "--cart-max-capacity 3",
-                                                        "--max-queued-carts 10",
-                                                        "--without-parameter-tuning");
+                                                        "--max-queued-carts 10");
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});    
     EXPECT_TRUE(result.err.starts_with("Could not clean up intermediate file"));

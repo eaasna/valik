@@ -18,7 +18,6 @@ struct env_var_pack
 {
     std::filesystem::path tmp_path;
     std::string stellar_exec{"stellar"};
-    std::string merge_exec{"cat"};
 
     env_var_pack()
     {
@@ -41,9 +40,6 @@ struct env_var_pack
 
         if (auto ptr = std::getenv("VALIK_STELLAR"); ptr != nullptr)
             stellar_exec = std::string(ptr);
-
-        if (auto ptr = std::getenv("VALIK_MERGE"); ptr != nullptr)
-            merge_exec = std::string(ptr);
     }
 
     /* Creates a temporary folder in the temporary path of the OS

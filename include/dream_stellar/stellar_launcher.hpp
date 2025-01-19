@@ -6,14 +6,18 @@
 namespace dream_stellar
 {
 
+/**
+ * @return Any query has valid matches.
+ */
 template <typename TAlphabet, typename TId>
-void _postproccessQueryMatches(bool const databaseStrand, uint64_t const & refLen,
+bool _postproccessQueryMatches(bool const databaseStrand, uint64_t const & refLen,
                                StellarOptions const & options,
                                StringSet<QueryMatches<StellarMatch<String<TAlphabet> const, TId> > > & matches,
                                std::vector<size_t> & disabledQueryIDs)
 {
     using TSequence = String<TAlphabet>;
 
+    bool foundMatches{false};
     for (size_t queryID = 0; queryID < length(matches); ++queryID)
     {
         QueryMatches<StellarMatch<TSequence const, TId>> & queryMatches = value(matches, queryID);
@@ -25,10 +29,15 @@ void _postproccessQueryMatches(bool const databaseStrand, uint64_t const & refLe
 
         if (queryMatches.disabled)
             disabledQueryIDs.push_back(queryID);
+        
+        if (seqan2::length(queryMatches.matches) > 0)
+            foundMatches = true;
     }
 
     if (databaseStrand)
         _postproccessLengthAdjustment(refLen, matches);
+    
+    return foundMatches;
 }
 
 template <typename TAlphabet, typename TId = CharString>

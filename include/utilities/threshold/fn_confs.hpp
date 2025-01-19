@@ -99,6 +99,21 @@ struct fn_confs
             
             return attr_vec[k - space.min_k()];
         }
+
+        const kmer_loss & get_kmer_loss(seqan3::shape const shape)
+        {
+            uint8_t k = shape.size();
+            if (k < space.min_k() || k > space.max_k())
+            {
+                throw std::runtime_error("k-mer length " + std::to_string(k) + " is out of range [" + 
+                      std::to_string(space.min_k()) + ", " + std::to_string(space.max_k()) + "]");
+            }
+
+            //!TODO: adjust precalculated attribute vectors to account for gapped shapes
+            // currently hack to copy the ungapped attribute without adjusting threshold 
+            attr_vec[k - space.min_k()].shape = shape;
+            return attr_vec[k - space.min_k()];
+        }
 };
 
 } // namespace valik

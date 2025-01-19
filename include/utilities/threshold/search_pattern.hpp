@@ -4,6 +4,8 @@
 
 #include <cereal/archives/binary.hpp> 
 
+#include <seqan3/search/kmer_index/shape.hpp>
+
 namespace valik
 {
 

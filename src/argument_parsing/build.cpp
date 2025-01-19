@@ -112,7 +112,13 @@ void run_build(sharg::parser & parser)
         
         arguments.kmer_size = search_profile.k;
         arguments.window_size = search_profile.k;
+        arguments.shape = search_profile.shape;
     }
+    else
+    {
+        arguments.shape = seqan3::shape(seqan3::ungapped(arguments.kmer_size));
+    }
+    arguments.shape_weight = arguments.shape.count();
 
     if (arguments.kmer_size > arguments.window_size)
     {
@@ -153,10 +159,7 @@ void run_build(sharg::parser & parser)
     // ==========================================
     if ((parser.is_option_set("kmer-count-min") || parser.is_option_set("kmer-count-max")) && parser.is_option_set("use-filesize-dependent-cutoff"))
         throw sharg::parser_error{"You cannot use both --kmer-count-cutoff and --use-filesize-dependent-cutoff."};
-
-    arguments.shape = seqan3::shape{seqan3::ungapped{arguments.kmer_size}};
-    arguments.shape_weight = arguments.shape.count();
-
+        
     try
     {
         sharg::output_file_validator{sharg::output_file_open_options::open_or_create}(arguments.out_path);

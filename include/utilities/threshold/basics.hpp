@@ -23,14 +23,16 @@ constexpr uint8_t query_every = 2; // query every 2nd pattern by default
  * 
  * @param bin_size Size of reference segment in bases.
  * @param kmer_size K-mer size.
+ * @param information_content How much of the sequence is unique across the genome.
  * 
 */
 template <typename var_t, typename par_t>
 double expected_kmer_occurrences(var_t const & bin_size,
-                                par_t const & kmer_size)
+                                par_t const & kmer_size, 
+                                double const information_content = 0.75)
 {
     constexpr uint8_t alphabet_size{4};
-    return (double) (bin_size - kmer_size + 1) / (double) pow(alphabet_size, kmer_size);
+    return (double) (bin_size - kmer_size + 1) / (double) (pow(alphabet_size, (uint8_t) std::round(kmer_size * information_content)));
 }
 
 /**

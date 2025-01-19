@@ -6,14 +6,16 @@ TEST(kmer_occurrences, small)
 {
     uint8_t kmer_size = 4;
     uint64_t genome_len = 256 + kmer_size - 1;
-    EXPECT_EQ(valik::expected_kmer_occurrences(genome_len, kmer_size), 1.0);
+    double inf_cont = 1.0;
+    EXPECT_EQ(valik::expected_kmer_occurrences(genome_len, kmer_size, inf_cont), 1.0);
 }
 
 TEST(kmer_occurrences, human_genome)
 {
     uint64_t human_genome_len = 3e9;
     uint8_t kmer_size = 16;
-    EXPECT_LE(valik::expected_kmer_occurrences(human_genome_len, kmer_size), 1.0);
+    double inf_cont = 1.0;
+    EXPECT_LE(valik::expected_kmer_occurrences(human_genome_len, kmer_size, inf_cont), 1.0);
 }
 
 TEST(kmer_lemma, manual_test)

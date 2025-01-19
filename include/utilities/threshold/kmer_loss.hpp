@@ -24,6 +24,8 @@ struct kmer_loss
     using mat_t = std::vector<table_t>;
     
     uint8_t k;
+    //!TODO: adjust the error configuration calculation for gapped k-mers 
+    seqan3::shape shape;
     mat_t fn_conf_counts;  // false negative configuration counts
 
     kmer_loss() noexcept = default;
@@ -72,7 +74,13 @@ struct kmer_loss
     }
 
     kmer_loss(uint8_t const kmer_size, param_space const & space) : 
-                    k(kmer_size), 
+                    k(kmer_size),
+                    shape(seqan3::shape(seqan3::ungapped(kmer_size))),
+                    fn_conf_counts(count_err_conf_below_thresh(space)) { }
+
+    kmer_loss(seqan3::shape const kmer_shape, param_space const & space) : 
+                    k(kmer_shape.size()), 
+                    shape(kmer_shape),
                     fn_conf_counts(count_err_conf_below_thresh(space)) { }
 
     /**

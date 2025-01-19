@@ -27,7 +27,7 @@ void init_split_parser(sharg::parser & parser, split_arguments & arguments)
                       sharg::config{.short_id = 'e',
                       .long_id = "error-rate",
                       .description = "Choose the upper bound for the maximum allowed error rate of a local match.",
-                      .validator = sharg::arithmetic_range_validator{0.0f, 0.1f}});
+                      .validator = sharg::arithmetic_range_validator{0.0f, 0.2f}});
     parser.add_option(arguments.fpr,
                       sharg::config{.short_id = '\0',
                       .long_id = "fpr",
@@ -36,8 +36,13 @@ void init_split_parser(sharg::parser & parser, split_arguments & arguments)
     parser.add_option(arguments.kmer_size,
                       sharg::config{.short_id = 'k',
                       .long_id = "kmer",
-                      .description = "Choose the kmer size.",
+                      .description = "Choose the ungapped kmer size.",
                       .validator = sharg::arithmetic_range_validator{space.min_k(), space.max_k()}});
+    parser.add_option(arguments.shape_str,
+                      sharg::config{.short_id = 's',
+                      .long_id = "shape",
+                      .description = "Choose the kmer shape. E.g 15-mer with two gaps: 111110111011111.",
+                      .validator = sharg::regex_validator{"[01]+"}});
     parser.add_option(arguments.seg_count_in,
                       sharg::config{.short_id = 'n',
                       .long_id = "seg-count",
@@ -75,6 +80,29 @@ void run_split(sharg::parser & parser)
     split_arguments arguments{};
     init_split_parser(parser, arguments);
     try_parsing(parser);
+
+    if (parser.is_option_set("kmer"))
+    {
+        if (parser.is_option_set("shape"))
+        {
+            throw sharg::parser_error{"Arguments --kmer and --shape are mutually exclusive."};
+        }
+        else
+        {
+            arguments.shape = seqan3::shape{seqan3::ungapped(arguments.kmer_size)};
+            arguments.shape_str = std::string(arguments.kmer_size, '1');
+            arguments.shape_weight = arguments.kmer_size;
+        }
+    }
+
+    if (parser.is_option_set("shape"))
+    {
+        uint64_t bin_shape{};
+        std::from_chars(arguments.shape_str.data(), arguments.shape_str.data() + arguments.shape_str.size(), bin_shape, 2);
+        arguments.shape = seqan3::shape(seqan3::bin_literal{bin_shape});
+        arguments.kmer_size = arguments.shape.size();
+        arguments.shape_weight = arguments.shape.count();
+    }
 
     arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);
     // ==========================================

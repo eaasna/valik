@@ -448,7 +448,7 @@ struct metadata
         metadata(search_arguments & arguments)
         {
             scan_database_file(arguments.query_file);
-            if (!arguments.manual_parameters)
+            if (arguments.seg_count_in == std::numeric_limits<uint32_t>::max())
             {
                 //!TODO: what is a suitable value for this magic const
                 //!TODO: switch between prefiltered and stellar_only search?
@@ -463,7 +463,7 @@ struct metadata
             }
 
             scan_database_sequences(arguments);
-            if (arguments.manual_parameters && (segments.size() != arguments.seg_count))
+            if ((arguments.seg_count_in < std::numeric_limits<uint32_t>::max()) & segments.size() != arguments.seg_count_in)
                 seqan3::debug_stream << "[Warning] Database was split into " << segments.size() << " instead of " << arguments.seg_count << " segments.\n";
 
             seq_count = sequences.size();
@@ -607,7 +607,7 @@ struct metadata
         /**
         * @brief The probability of at least threshold k-mers matching spuriously between a query pattern and a reference bin.
         */
-        double pattern_spurious_match_prob(param_set const & params) const
+        double pattern_spurious_match_prob(param_set const & params, double const information_content = 0.75) const
         {
             double fpr{1};
             double p = ibf_fpr + kmer_spurious_match_prob(params.k);
@@ -634,8 +634,8 @@ struct metadata
             the probability of 1 k-mer out of n matching is P(1 k-mer matches) = (n take 1) * p^1 * (1 - p)^(n - 1).
             */
 
-            size_t kmers_per_pattern = pattern_size - params.k + 1;
-            for (uint8_t matching_kmer_count{0}; matching_kmer_count < params.t; matching_kmer_count++)
+            size_t kmers_per_pattern = std::min((size_t) params.t, (size_t) std::round((double) (pattern_size - params.k + 1) * information_content));
+	    for (uint16_t matching_kmer_count{0}; matching_kmer_count < (uint16_t) std::round(params.t * 0.35); matching_kmer_count++)
             {
                 if (fpr < precision) 
                     break;

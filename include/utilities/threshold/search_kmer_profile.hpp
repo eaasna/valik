@@ -4,8 +4,13 @@
 #include <utilities/threshold/search_pattern.hpp>
 
 #include <unordered_map>
+#include <charconv>
+
 #include <cereal/archives/binary.hpp> 
 #include <cereal/types/unordered_map.hpp>
+#include <cereal/types/string.hpp>
+
+#include <seqan3/core/debug_stream.hpp>
 
 namespace valik
 {
@@ -87,6 +92,8 @@ struct search_kmer_profile
 {
     size_t k;
     size_t l;
+    seqan3::shape shape;
+    std::string shape_str;
     std::unordered_map<uint8_t, search_error_profile> error_table;
     uint8_t max_errors{0};
 
@@ -96,7 +103,9 @@ struct search_kmer_profile
     search_kmer_profile & operator=(search_kmer_profile &&) noexcept = default;
     ~search_kmer_profile() noexcept = default;
 
-    search_kmer_profile(size_t const kmer_size, size_t const min_len) : k(kmer_size), l(min_len) {}
+    search_kmer_profile(size_t const kmer_size, size_t const min_len) : k(kmer_size), l(min_len), shape(seqan3::ungapped(kmer_size)), shape_str(std::string(kmer_size, '1')) { }
+    
+    search_kmer_profile(seqan3::shape const kmer_shape, size_t const min_len) : k(kmer_shape.size()), l(min_len), shape(kmer_shape), shape_str(kmer_shape.to_string()) {}    
 
     search_kmer_profile(std::filesystem::path const & filepath)
     {
@@ -133,7 +142,7 @@ struct search_kmer_profile
     {
         std::ofstream os(filepath, std::ios::binary);
         cereal::BinaryOutputArchive archive(os);
-        archive(k, l, error_table);
+        archive(shape_str, l, error_table);
     }
       
     /**
@@ -145,8 +154,12 @@ struct search_kmer_profile
     {
         std::ifstream is(filepath, std::ios::binary);
         cereal::BinaryInputArchive archive(is);
-        archive(k, l, error_table);
+        archive(shape_str, l, error_table);
         max_errors = error_table.size();
+        uint64_t bin_shape{};
+        std::from_chars(shape_str.data(), shape_str.data() + shape_str.size(), bin_shape, 2);
+        shape = seqan3::shape(seqan3::bin_literal{bin_shape});
+        k = shape.size();
     }
 
     double max_error_rate() const
@@ -156,8 +169,12 @@ struct search_kmer_profile
 
     void print() const 
     {
-        std::cout.precision(3);
-        std::cout << "\nRecommended shared " << std::to_string(k) << "-mer thresholds for matches of (min_length=" << std::to_string(l) 
+        std::cout.precision(6);
+        std::cout << "\nRecommended shared " << std::to_string(k) << "-mer ";
+        if (k >= shape.count())
+            std::cout << "(" << shape.to_string() << ") "; 
+            
+        std::cout << "thresholds for matches of (min_length=" << std::to_string(l) 
                   << "; max_error_rate=" << max_error_rate() << ")\n";
         std::cout << "errors\tthreshold_kind\tthreshold\tFNR\tFP_per_pattern\n";
 
