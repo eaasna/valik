@@ -18,10 +18,7 @@ struct env_var_pack
 {
     std::filesystem::path tmp_path;
     std::string stellar_exec{"stellar"};
-<<<<<<< HEAD
     std::string merge_exec{"cat"};
-=======
->>>>>>> 20a0e6c (Do not write empty output files)
 
     env_var_pack()
     {
