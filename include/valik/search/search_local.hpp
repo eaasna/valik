@@ -135,7 +135,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                 if (arguments.shape_size == arguments.shape_weight)
                     std::cout << "kmer size " << std::to_string(arguments.shape_size) << '\n';
                 else 
-                    std::cout << "kmer shape " << std::to_string(arguments.shape.to_string()) << '\n';
+                    std::cout << "kmer shape " << arguments.shape.to_string() << '\n';
                 std::cout << "window size " << std::to_string(arguments.window_size) << '\n';
                 switch (arguments.search_type)
                 {
