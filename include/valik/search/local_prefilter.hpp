@@ -130,10 +130,10 @@ void find_pattern_bins(pattern_bounds const & pattern,
             if (count >= (pattern.threshold + correction))
             {
                 // the result is a union of results from all patterns of a read
-                sequence_hits.insert(current_bin);
+                pattern_hits.insert(current_bin);
             }
         }
-        if (pattern.threshold + correction >= pattern.minimiser_count())
+        if ((pattern.threshold + correction) >= pattern.minimiser_count())
             max_threshold = true;
         if (pattern_hits.size() < std::max((size_t) 4, (size_t) std::round(bin_count / 4.0)) || 
             max_threshold)
