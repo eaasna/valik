@@ -54,6 +54,11 @@ struct pattern_bounds
     size_t begin_position;
     size_t end_position;
     size_t threshold;
+
+    size_t minimiser_count() const
+    {
+        return end_position - begin_position;
+    }
 };
 
 /**
@@ -89,9 +94,7 @@ pattern_bounds make_pattern_bounds(size_t const & begin,
     assert(end_it != window_span_begin.begin());
     pattern.end_position = end_it - window_span_begin.begin();
 
-    size_t const minimiser_count = pattern.end_position - pattern.begin_position;
-
-    pattern.threshold = thresholder.get(minimiser_count);
+    pattern.threshold = thresholder.get(pattern.minimiser_count());
     return pattern;
 }
 
@@ -114,15 +117,36 @@ void find_pattern_bins(pattern_bounds const & pattern,
 
     for (size_t i = pattern.begin_position; i < pattern.end_position; i++)
         total_counts += counting_table[i];
-    for (size_t current_bin = 0; current_bin < total_counts.size(); current_bin++)
+
+    std::unordered_set<size_t> pattern_hits;
+
+    bool max_threshold{false};
+    uint8_t correction{0};
+    while (true)
     {
-        auto &&count = total_counts[current_bin];
-        if (count >= pattern.threshold)
+        for (size_t current_bin = 0; current_bin < total_counts.size(); current_bin++)
         {
-            // the result is a union of results from all patterns of a read
-            sequence_hits.insert(current_bin);
+            auto &&count = total_counts[current_bin];
+            if (count >= (pattern.threshold + correction))
+            {
+                // the result is a union of results from all patterns of a read
+                sequence_hits.insert(current_bin);
+            }
+        }
+        if (pattern.threshold + correction >= pattern.minimiser_count())
+            max_threshold = true;
+        if (pattern_hits.size() < std::max((size_t) 4, (size_t) std::round(bin_count / 4.0)) || 
+            max_threshold)
+            break;
+        else
+        {
+            pattern_hits.clear();
+            correction += std::max((size_t) 1, (size_t) std::round(pattern.threshold * 0.1 * correction));
         }
     }
+    
+    for (auto bin : pattern_hits)
+        sequence_hits.insert(bin);
 }
 
 /**
