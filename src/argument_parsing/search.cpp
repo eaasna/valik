@@ -346,7 +346,7 @@ void run_search(sharg::parser & parser)
             {
                 arguments.search_type = search_kind::LEMMA;
                 if (arguments.threshold < lemma_thresh)
-                    std::cerr << "[Warning] chosen threshold is less than the k-mer lemma threshold. Ignore this warning if this was deliberate.";
+                    std::cerr << "[Warning] The chosen threshold is less than the k-mer lemma threshold. Ignore this warning if this was deliberate.";
             }
         }
         if (arguments.stellar_only)
