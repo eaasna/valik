@@ -207,15 +207,6 @@ void find_pattern_bins(pattern_bounds const & pattern,
     for (size_t current_bin = 0; current_bin < total_counts.size(); current_bin++)
     {
         auto &&count = total_counts[current_bin];
-        if (current_bin == 0)
-        {
-            if (std::round(pattern.threshold * correction_coef) > pattern.threshold)
-            {
-                seqan3::debug_stream << "Threshold was " << pattern.threshold << '\n';
-                seqan3::debug_stream << "New threshold " << std::to_string((size_t) std::round(pattern.threshold * correction_coef)) << '\n';
-            }
-        }
-            
         if (count >= (pattern.threshold * correction_coef))
         {
             // the result is a union of results from all patterns of a read
@@ -307,9 +298,6 @@ void local_prefilter(
                 return find_dynamic_threshold_correction(pattern, bin_count, counting_table);
             });
         }
-
-        if (threshold_correction > 1.0000001)
-            seqan3::debug_stream << "Correct threshold by " << threshold_correction << '\n';
 
         pattern_begin_positions(seq.size(), arguments.pattern_size, arguments.query_every, [&](size_t const begin)
         {
