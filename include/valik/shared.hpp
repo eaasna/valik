@@ -188,6 +188,7 @@ struct search_arguments final : public minimiser_threshold_arguments, search_pro
     bool keep_best_repeats{false};
     double best_bin_entropy_cutoff{0.25};
     bool keep_all_repeats{false};
+    bool static_threshold{false};
     bool stellar_only{false};
 
     size_t cart_max_capacity{1000};
