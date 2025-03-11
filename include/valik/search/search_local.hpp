@@ -81,7 +81,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     {
         arguments.bin_path.clear(); // in case inserted from index
         for (auto & f : ref_meta.files)
-            arguments.bin_path.push_back(std::vector<std::string>{f.path});
+            arguments.bin_path.push_back(f.path);
 
         auto prefilter_bin_count = ref_meta.seg_count;
         split_arguments stellar_dist_arguments;
@@ -183,7 +183,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     bool const databasesSuccess = input_databases_time.measure_time([&]()
     {
         std::cout << "Launching stellar search on a shared memory machine...\n";
-        return dream_stellar::_importAllSequences(arguments.bin_path[0][0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
+        return dream_stellar::_importAllSequences(arguments.bin_path[0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
     });
     if (!databasesSuccess)
         return false;

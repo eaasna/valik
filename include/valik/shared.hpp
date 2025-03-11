@@ -58,7 +58,7 @@ struct dna4_traits : seqan3::sequence_file_input_default_traits_dna
 
 struct split_arguments
 {
-    std::vector<std::vector<std::string>> bin_path{};
+    std::vector<std::string> bin_path{};
     std::filesystem::path db_file{};
     std::filesystem::path meta_out{"metadata.bin"};
 
@@ -89,7 +89,7 @@ struct build_arguments
     uint8_t shape_weight{shape.count()};
     uint8_t threads{1u};
 
-    std::vector<std::vector<std::string>> bin_path{};
+    std::vector<std::string> bin_path{};
     std::filesystem::path out_path;
     std::filesystem::path out_dir{"./"};
     float fpr{0.05};
@@ -175,7 +175,7 @@ struct search_arguments final : public minimiser_threshold_arguments, search_pro
 
     uint8_t threads{1u};
 
-    std::vector<std::vector<std::string>> bin_path{};
+    std::vector<std::string> bin_path{};
     std::filesystem::path query_file{};
     std::filesystem::path index_file{};
     std::filesystem::path all_matches{};

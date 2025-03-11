@@ -229,31 +229,28 @@ struct metadata
          *
          * @param bin_path Database paths.
          */
-        void scan_metagenome_bins(std::vector<std::vector<std::string>> const & bin_path)
+        void scan_metagenome_bins(std::vector<std::string> const & bin_path)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
             size_t file_id{0};
-            for (std::vector<std::string> bin_files : bin_path)
+            for (std::string bin_file : bin_path)
             {
                 uint64_t bin_len{0};
                 std::vector<size_t> bin_seq_ids;
-                for (std::string bin_file : bin_files)
+                files.emplace_back(file_id, bin_file);
+                seqan3::sequence_file_input<traits_type> fin{bin_file};
+                size_t fasta_ind = sequences.size();
+                for (auto & record : fin)
                 {
-                    files.emplace_back(file_id, bin_file);
-                    seqan3::sequence_file_input<traits_type> fin{bin_file};
-                    size_t fasta_ind = sequences.size();
-                    for (auto & record : fin)
-                    {
-                        trim_fasta_id(record.id());
-                        sequence_stats seq(file_id, record.id(), fasta_ind, record.sequence().size());
-                        total_len += seq.len;
-                        bin_len += seq.len;
-                        bin_seq_ids.push_back(fasta_ind);
-                        sequences.push_back(seq);
-                        fasta_ind++;
-                    }
-                    file_id++;
+                    trim_fasta_id(record.id());
+                    sequence_stats seq(file_id, record.id(), fasta_ind, record.sequence().size());
+                    total_len += seq.len;
+                    bin_len += seq.len;
+                    bin_seq_ids.push_back(fasta_ind);
+                    sequences.push_back(seq);
+                    fasta_ind++;
                 }
+                file_id++;
                 add_segment(segments.size(), bin_seq_ids, bin_len); 
             }
         }
@@ -436,7 +433,7 @@ struct metadata
             }
             else
             {
-                scan_database_file(arguments.bin_path[0][0]);
+                scan_database_file(arguments.bin_path[0]);
                 scan_database_sequences(arguments);
             }
 

@@ -135,7 +135,7 @@ void run_build(sharg::parser & parser)
     metadata meta(arguments.ref_meta_path);
     arguments.bins = meta.seg_count;
     if (meta.files.size() == 1)
-        arguments.bin_path.push_back(std::vector<std::string>{meta.files[0].path});
+        arguments.bin_path.push_back(meta.files[0].path);
     else
     {
         for (auto & seg : meta.segments)
@@ -145,12 +145,9 @@ void run_build(sharg::parser & parser)
             {
                 file_ids.emplace(meta.sequences[seq_id].file_id);
             }
-            std::vector<std::string> bin_files{};
-            for (size_t file_id : file_ids)
-            {
-                bin_files.push_back(meta.files[file_id].path);
-            }
-            arguments.bin_path.push_back(bin_files);
+            
+            assert(file_ids.size() == 1);
+            arguments.bin_path.push_back(meta.files[*file_ids.begin()].path);
         }
     }
 

@@ -115,21 +115,13 @@ void run_split(sharg::parser & parser)
     if (arguments.metagenome)
     {
         std::ifstream istrm{arguments.db_file};
-        std::string line;
-        while (std::getline(istrm, line))
+        std::string bin_path;
+        while (std::getline(istrm, bin_path))
         {
-            if (!line.empty())
+            if (!bin_path.empty())
             {
-                std::stringstream linestrm(line);
-                std::string filepath;
-                std::vector<std::string> bin_paths;
-                while (std::getline(linestrm, filepath, '\t'))
-                {
-                    sequence_file_validator(filepath);
-                    bin_paths.emplace_back(filepath);
-                }
-
-                arguments.bin_path.emplace_back(bin_paths);
+                sequence_file_validator(bin_path);
+                arguments.bin_path.emplace_back(bin_path);
             }
         }
     }
@@ -137,7 +129,7 @@ void run_split(sharg::parser & parser)
     {
         sequence_file_validator(arguments.db_file);
         std::string bin_string{arguments.db_file.string()};
-        arguments.bin_path.emplace_back(std::vector<std::string>{bin_string});
+        arguments.bin_path.emplace_back(bin_string);
     }
 
     if (!parser.is_option_set("out"))

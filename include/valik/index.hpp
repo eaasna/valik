@@ -30,7 +30,7 @@ private:
 
     uint64_t window_size_{};
     seqan3::shape shape_{};
-    std::vector<std::vector<std::string>> bin_path_{};
+    std::vector<std::string> bin_path_{};
     std::vector<size_t> entropy_ranking_{};
     data_t ibf_{};
 
@@ -77,7 +77,7 @@ public:
         return shape_;
     }
 
-    std::vector<std::vector<std::string>> const & bin_path() const
+    std::vector<std::string> const & bin_path() const
     {
         return bin_path_;
     }
