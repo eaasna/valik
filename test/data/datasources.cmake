@@ -236,6 +236,12 @@ declare_datasource (FILE 2error.gff.out
 declare_datasource (FILE 2error_stellar.gff
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/2error_stellar.gff
                 URL_HASH SHA256=85cef348cd514cd12c442c71c7b44a6e44da4d3ea99e56752b3cc88d6f8d5b3f)
+declare_datasource (FILE dummy.index
+                URL ${CMAKE_SOURCE_DIR}/test/data/dream/dummy.index
+                URL_HASH SHA256=832b933ccdbe21684ad1a1f59f19f2450843203370d98f6fc60d675fdafaf2ed)
+declare_datasource (FILE dummy_reads.fastq
+                URL ${CMAKE_SOURCE_DIR}/test/data/dream/dummy_reads.fastq
+                URL_HASH SHA256=bf046a665167d983c19cf49c0366e09b0773860a679db97ed2a6a6e6a19e4cd9)
 declare_datasource (FILE meta_param_deduction.arg
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/meta_param_deduction.arg
                 URL_HASH SHA256=80fb0184ba1af94a20e263c8f20e0cf96358c2afc5c38f758a495cf505634440)
