@@ -54,7 +54,7 @@ do
         search_out="single/"$seg_overlap"overlap"$b"bins"$w"window"$errors"errors.gff"
         error_rate=$(echo $errors/$pattern| bc -l )
         valik search --distribute --index "$index" --query "$query" --output "$search_out" --error-rate "$error_rate" \
-                     --pattern "$pattern" --query-every 1 --ref-meta "$seg_meta" --threads 1 \
+                     --pattern "$pattern" --query-every 1 --ref-meta "$seg_meta" --threads 1 --very-verbose \
                      --without-parameter-tuning --cart-max-capacity 3 --max-queued-carts 10
     rm "$search_out"    # only look at .gff.out
     done
