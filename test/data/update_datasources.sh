@@ -135,3 +135,28 @@ do
     echo -n $sha >> ../datasources.cmake
     echo ")" >> ../datasources.cmake
 done
+
+cd ../prepare
+
+for b in 0 20 40 60; do
+    
+    file="ref_$b.fasta"
+    echo -n "declare_datasource (FILE ref_bin_${b}.fasta
+                URL \${CMAKE_SOURCE_DIR}/test/data/prepare/bins/${file}
+                URL_HASH SHA256=" >> ../datasources.cmake
+    
+    sha=($(shasum -a 256 bins/$file))
+    echo -n $sha >> ../datasources.cmake
+    echo ")" >> ../datasources.cmake
+
+    for shape in "11111111" "1001"; do
+        file="ref.$b.header"
+        echo -n "declare_datasource (FILE s${shape}_${file}
+                    URL \${CMAKE_SOURCE_DIR}/test/data/prepare/s$shape/${file}
+                    URL_HASH SHA256=" >> ../datasources.cmake
+
+        sha=($(shasum -a 256 s$shape/$file))
+        echo -n $sha >> ../datasources.cmake
+        echo ")" >> ../datasources.cmake
+    done
+done

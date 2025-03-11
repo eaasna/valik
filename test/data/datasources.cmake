@@ -254,4 +254,39 @@ declare_datasource (FILE query.fasta
 declare_datasource (FILE ref.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/dream/ref.fasta
                 URL_HASH SHA256=47f808d207c4c90afebbe1c8ab28990ec0e3e777c75ec787099279005428f3da)
-                
+declare_datasource (FILE ref_bin_0.fasta
+                URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_0.fasta
+                URL_HASH SHA256=ac6331eaa3481372a3921067fd25bfcf8ac14a83745d4ef9249b1f5720fd28bb)
+declare_datasource (FILE s11111111_ref.0.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.0.header
+                    URL_HASH SHA256=a7a67bb18a827dcede5a86472f073a45e18b5cc9b4baaaf87adc1b98866d233f)
+declare_datasource (FILE s1001_ref.0.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.0.header
+                    URL_HASH SHA256=1a0e13300c7198fa871223c533dc49b36fed3f6fc53a932038e9e507431b1dbb)
+declare_datasource (FILE ref_bin_20.fasta
+                URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_20.fasta
+                URL_HASH SHA256=2316a3d23a06d11c638472f97bc52bb373dfce84215e96d481637d3e1d1f686f)
+declare_datasource (FILE s11111111_ref.20.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.20.header
+                    URL_HASH SHA256=ccb04b6fa79b8e45cd3ae333ee3ee76017fad008043d80c85a1eba0b7b7fc50a)
+declare_datasource (FILE s1001_ref.20.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.20.header
+                    URL_HASH SHA256=b588ca96e50b2f91d44a576f89f79c5da08a65befaa733c0f206a5346b178424)
+declare_datasource (FILE ref_bin_40.fasta
+                URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_40.fasta
+                URL_HASH SHA256=103aeb18016d1cf766809777a63e6ff89136f8ffc4afce5ca75996b844b167aa)
+declare_datasource (FILE s11111111_ref.40.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.40.header
+                    URL_HASH SHA256=b9976314aba662c1ea22f1fd8dab98a1b743627ba4a4773a4e57531885d62b07)
+declare_datasource (FILE s1001_ref.40.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.40.header
+                    URL_HASH SHA256=827d71ae37f4f0238edcefda0eeb16585149d52ddf4e9cabaf441c2cb772b493)
+declare_datasource (FILE ref_bin_60.fasta
+                URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_60.fasta
+                URL_HASH SHA256=eb4c4e2e60820cb0cae3f0321935d74392e1a39a12671e2a0d50c1e513860bd3)
+declare_datasource (FILE s11111111_ref.60.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.60.header
+                    URL_HASH SHA256=67a0e1b1a770f2d51fa8e1b3f78f0bd3cf30c06170d28b2a195467b232e1eddb)
+declare_datasource (FILE s1001_ref.60.header
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.60.header
+                    URL_HASH SHA256=12c3be67258b165d5f4746bdcb320b5f6485dd304b4b2e0c3e7f593fe12a060f)
