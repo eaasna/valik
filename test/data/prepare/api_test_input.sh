@@ -10,18 +10,20 @@ do
     seg_meta="s${shape}.bin"
     index="s${shape}.ibf"
     mkdir -p "s$shape"
-
-    if [ ! -s s$shape ]; then
-        rm "s$shape/*"
+    
+    if [ -f "s${shape}/ref.0.header"  ];then   
+        rm s${shape}/*
     fi
-    
-    valik split "$ref_input" --shape $shape --pattern "$p" --out "$seg_meta" --write-out
+
+    valik split "$ref_input" --shape $shape --pattern "$p" --out "$seg_meta" --write-out --seg-count 8 --without-parameter-tuning
     valik build --output "$index" --fast --ref-meta $seg_meta --kmer-count-min 1
-    
+
     mv ref.*.header s$shape/
     mv ref.*.minimiser s$shape/
 done
 
 mkdir -p bins
-rm bins/*
+if [ -f "bins/ref_0.fasta" ];then
+    rm bins/*
+fi
 mv ../dream/ref_*.fasta bins/
