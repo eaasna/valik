@@ -63,12 +63,9 @@ void compute_minimiser(valik::build_arguments const & arguments);
 namespace detail
 {
 
-size_t kmer_count_from_minimiser_files(std::vector<std::string> const & bin_path, uint8_t const threads);
+size_t kmer_count_from_minimiser_files(std::vector<std::string> const & minimiser_bin_path, uint8_t const threads);
 
-size_t kmer_count_from_sequence_files(std::vector<std::string> const & bin_path,
-                                      uint8_t const threads,
-                                      seqan3::shape const & shape,
-                                      uint32_t const window_size);
+size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments);
 
 } // namespace detail
 
