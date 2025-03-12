@@ -18,7 +18,7 @@ TEST(from_sequence_files, max_count)
     for (auto shape : shapes)
     {
         arguments.shape = shape;
-        arguments.window_size = shape.count() + 2;
+        arguments.window_size = shape.size() + 2;
         auto sequence_files_max_count = raptor::detail::kmer_count_from_sequence_files(arguments);
         auto minimiser_files_max_count = raptor::detail::kmer_count_from_minimiser_files(std::vector<std::string>{data("s" + shape.to_string() + "_ref.0.header"), 
                                                                                                                   data("s" + shape.to_string() + "_ref.20.header"), 
