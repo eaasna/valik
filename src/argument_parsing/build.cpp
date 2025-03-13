@@ -78,11 +78,6 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
                                     .description = "Only store k-mers with no more than (<=) x occurrences. "
                                                    "Mutually exclusive with --use-filesize-dependent-cutoff.",
                                     .validator = sharg::arithmetic_range_validator{1, 254}});
-    parser.add_flag(arguments.use_filesize_dependent_cutoff,
-                    sharg::config{.short_id = '\0',
-                                  .long_id = "use-filesize-dependent-cutoff",
-                                  .description = "Apply cutoffs from Mantis(Pandey et al., 2018). "
-                                                 "Mutually exclusive with --kmer-count-cutoff."});
 }
 
 void run_build(sharg::parser & parser)
@@ -154,8 +149,6 @@ void run_build(sharg::parser & parser)
     // ==========================================
     // Process minimiser parameters for IBF size calculation.
     // ==========================================
-    if ((parser.is_option_set("kmer-count-min") || parser.is_option_set("kmer-count-max")) && parser.is_option_set("use-filesize-dependent-cutoff"))
-        throw sharg::parser_error{"You cannot use both --kmer-count-cutoff and --use-filesize-dependent-cutoff."};
         
     try
     {
