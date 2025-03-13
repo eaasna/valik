@@ -40,10 +40,11 @@ inline double score(kmer_loss const & attr,
                     search_pattern const & pattern, 
                     param_set const & params, 
                     metadata const & ref_meta,
-                    size_t const PATTERNS_PER_SEGMENT)
+                    size_t const PATTERNS_PER_SEGMENT, 
+                    double const information_content)
 {
     
-    double none_match_p = pow(1 - ref_meta.pattern_spurious_match_prob(params), PATTERNS_PER_SEGMENT);
+    double none_match_p = pow(1 - ref_meta.pattern_spurious_match_prob(params, information_content), PATTERNS_PER_SEGMENT);
     double fpr = std::min(1 - none_match_p, 1.0);
 
     return attr.fnr_for_param_set(pattern, params) + fpr;
@@ -55,6 +56,7 @@ inline double score(kmer_loss const & attr,
 param_set get_best_params(search_pattern const & pattern, 
                           metadata const & ref_meta,
                           fn_confs const & fn_attr, 
+                          double const information_content,
                           bool const verbose);
 
 /**
@@ -62,6 +64,7 @@ param_set get_best_params(search_pattern const & pattern,
 */
 search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                                                   kmer_loss const attr, 
-                                                  uint8_t const max_errors);
+                                                  uint8_t const max_errors,
+                                                  double const information_content);
 
 }   // namespace valik

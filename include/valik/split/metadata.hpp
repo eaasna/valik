@@ -604,7 +604,7 @@ struct metadata
         /**
         * @brief The probability of at least threshold k-mers matching spuriously between a query pattern and a reference bin.
         */
-        double pattern_spurious_match_prob(param_set const & params, double const information_content = 0.35) const
+        double pattern_spurious_match_prob(param_set const & params, double const information_content) const
         {
             double fpr{1};
             double p = ibf_fpr + kmer_spurious_match_prob(params.kmer.weight());
