@@ -16,7 +16,7 @@ do
     fi
 
     valik split "$ref_input" --shape $shape --pattern "$p" --out "$seg_meta" --write-out --seg-count 8 --without-parameter-tuning
-    valik build --output "$index" --fast --ref-meta $seg_meta --kmer-count-min 1
+    valik build --output "$index" --fast --ref-meta $seg_meta --kmer-count-min 0 --kmer-count-max 254
 
     mv ref.*.header s$shape/
     mv ref.*.minimiser s$shape/

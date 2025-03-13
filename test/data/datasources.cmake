@@ -266,69 +266,117 @@ declare_datasource (FILE ref_bin_0.fasta
 declare_datasource (FILE s11111111_ref.0.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.0.header
                     URL_HASH SHA256=2bd3aa799c1689f366f58e468dc2b73537463e2244e00ef3eac1b055bef130c8)
+declare_datasource (FILE s11111111_ref.0.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.0.minimiser
+                    URL_HASH SHA256=b92f326fd1bc48b0858f65a043e48ee8cff275d1b605cc11f83951a9bbcf0d4f)
 declare_datasource (FILE s1001_ref.0.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.0.header
-                    URL_HASH SHA256=a06c5c37ec97d8f9bd3b3567a9096bf2525f5204383ef5740def14cb9755b9b8)
+                    URL_HASH SHA256=0754e4e66bf22b1ff841d04ed9ffd6521545a60fe1615e920c7a030a9f998a13)
+declare_datasource (FILE s1001_ref.0.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.0.minimiser
+                    URL_HASH SHA256=220ef0272c92c1529499408610eb2a7153fce7796fcbdd51201f86e64b39a192)
 declare_datasource (FILE ref_bin_1.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_1.fasta
                 URL_HASH SHA256=486d3e529acdd263896123389ece34774ed4448df33b5e6ae1ced672526a2efe)
 declare_datasource (FILE s11111111_ref.1.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.1.header
                     URL_HASH SHA256=a04fafe6af22a41ad26eaaa43434df0fbdd975c67645d84a35de736186b5a680)
+declare_datasource (FILE s11111111_ref.1.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.1.minimiser
+                    URL_HASH SHA256=5abf0ea1fdd97d5bd0ac21445902f91d69e5652f5bf39cac9eb374fc5b54f483)
 declare_datasource (FILE s1001_ref.1.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.1.header
-                    URL_HASH SHA256=40fe98cc561ec11701444c507beb3681d678e3e13ae2ff4dc28b3a12c09cff08)
+                    URL_HASH SHA256=364d9f431c2ab580c77a02b91d4cd6aa8dd4c6c6dc2b3c74c3691faf32a78a37)
+declare_datasource (FILE s1001_ref.1.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.1.minimiser
+                    URL_HASH SHA256=220ef0272c92c1529499408610eb2a7153fce7796fcbdd51201f86e64b39a192)
 declare_datasource (FILE ref_bin_2.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_2.fasta
                 URL_HASH SHA256=76202a44ea78ea01420192e1266c5618b5e8131e65dee9c129c726240a687063)
 declare_datasource (FILE s11111111_ref.2.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.2.header
                     URL_HASH SHA256=efacd3cfeaec4c6e17d2e54e846ca24d7db6e65b2709980a47616a60c89a5d90)
+declare_datasource (FILE s11111111_ref.2.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.2.minimiser
+                    URL_HASH SHA256=4cf2c1243a0a9b41818bea7d65873764063aeeed2c7428ea78a3ba8a345682fb)
 declare_datasource (FILE s1001_ref.2.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.2.header
-                    URL_HASH SHA256=10c8ff30feb62b5679cd1a8fb4b03f817b5175bddb7b108c12b2f7e5783f2734)
+                    URL_HASH SHA256=364d9f431c2ab580c77a02b91d4cd6aa8dd4c6c6dc2b3c74c3691faf32a78a37)
+declare_datasource (FILE s1001_ref.2.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.2.minimiser
+                    URL_HASH SHA256=9dde0d2edefc7620ab4035c9223f7a519a8c2a03bbc1074290168b300172e8ab)
 declare_datasource (FILE ref_bin_3.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_3.fasta
                 URL_HASH SHA256=da5f19c86476464aeaa483baf47b387a30e4d35bffd0e4d5c8cc30b86171458b)
 declare_datasource (FILE s11111111_ref.3.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.3.header
                     URL_HASH SHA256=b68d2e2d414ad85b241a95cc8a7803e7287ad91b141e21b6dea3d0c52e4383b5)
+declare_datasource (FILE s11111111_ref.3.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.3.minimiser
+                    URL_HASH SHA256=e2dae13eb7002cb5ce0bc1e26e76608a9b171649137ae85eaa8367fadef7ecf7)
 declare_datasource (FILE s1001_ref.3.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.3.header
-                    URL_HASH SHA256=9b1cd9a5da57d6d3a43567dfcf4bf023caaf6b55a0eb4d570ea7c7713a0a3b59)
+                    URL_HASH SHA256=e619d7b55293062695176f8099a17421c5dc26571e9744e59339786d5b6f6734)
+declare_datasource (FILE s1001_ref.3.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.3.minimiser
+                    URL_HASH SHA256=220ef0272c92c1529499408610eb2a7153fce7796fcbdd51201f86e64b39a192)
 declare_datasource (FILE ref_bin_4.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_4.fasta
                 URL_HASH SHA256=eaf85f135a9197732e6171b6652493f897e225b9970befea7945ff01e879688b)
 declare_datasource (FILE s11111111_ref.4.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.4.header
                     URL_HASH SHA256=02ed6fd31d1adb0fe55d58f2f22facb9be51193cab24e634a9380400b7f04ebd)
+declare_datasource (FILE s11111111_ref.4.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.4.minimiser
+                    URL_HASH SHA256=644c16cfdd9647aecf657609de328d9dcb8b275d0de082f3acf06572ae92c8f6)
 declare_datasource (FILE s1001_ref.4.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.4.header
-                    URL_HASH SHA256=6e7a8ccac8ebc0c3cee6fb22a980f46167a5ed66d099aeff707f15050eb743b1)
+                    URL_HASH SHA256=e619d7b55293062695176f8099a17421c5dc26571e9744e59339786d5b6f6734)
+declare_datasource (FILE s1001_ref.4.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.4.minimiser
+                    URL_HASH SHA256=f7f0a8292c4b2386eebfc24f160ec25d3e7eadfe5141f107deb8b8253f0e5f88)
 declare_datasource (FILE ref_bin_5.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_5.fasta
                 URL_HASH SHA256=0084dceed91ba50fd25675a82b92c51784284ebf84d4904f1eaa825c8e8add49)
 declare_datasource (FILE s11111111_ref.5.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.5.header
                     URL_HASH SHA256=b12fb8c4ff2e6ec4deddf5883e7f89a3be27ef386e5b0d242f5522ce93d45c70)
+declare_datasource (FILE s11111111_ref.5.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.5.minimiser
+                    URL_HASH SHA256=e35c85d430b4e2f58e72888f0f427abd93b9504415a564a274095b69969f60f8)
 declare_datasource (FILE s1001_ref.5.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.5.header
-                    URL_HASH SHA256=c70691525cc19ea079477f8a4a0f63243a9ae4613f5b0416fc669895af085601)
+                    URL_HASH SHA256=2daccdb7ce627080ba994c238de4e618a4bbd6501b67cc456c1ddbe847d9b797)
+declare_datasource (FILE s1001_ref.5.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.5.minimiser
+                    URL_HASH SHA256=4a762e49f5450bb0124abea6f8aab66c914e669c37b6ace8f4ff4c6d3d4040b0)
 declare_datasource (FILE ref_bin_6.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_6.fasta
                 URL_HASH SHA256=0ab92343a1bd9610601183362f8719c397265a42cf47b7b8719bf8b66c1636e5)
 declare_datasource (FILE s11111111_ref.6.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.6.header
-                    URL_HASH SHA256=3524f7b65566ef2de0b898227c378a3de217c3240d804b60111fe8272bb8606e)
+                    URL_HASH SHA256=167b50db02aa4c53ed11c0505340ad09b83c7f9088dba990a23273643a2f483b)
+declare_datasource (FILE s11111111_ref.6.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.6.minimiser
+                    URL_HASH SHA256=f593ca9e1672ecc9d5b4fa9a9d9cc4f1c721f7dd9fa52ac82ba4288a24321473)
 declare_datasource (FILE s1001_ref.6.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.6.header
-                    URL_HASH SHA256=af8cd3c0215c63652388164bd45f69fb34ee7aa6a43d1dfd5d9fb32deca2e9c6)
+                    URL_HASH SHA256=dcaad7664ae29715722dbfe99db9794abbe306883e7505b414a08bdc370855bf)
+declare_datasource (FILE s1001_ref.6.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.6.minimiser
+                    URL_HASH SHA256=aae89fc0f03e2959ae4d701a80cc3915918c950b159f6abb6c92c1433b1a8534)
 declare_datasource (FILE ref_bin_7.fasta
                 URL ${CMAKE_SOURCE_DIR}/test/data/prepare/bins/ref_7.fasta
                 URL_HASH SHA256=7a94f3b63c2cdc1c4d2d58e51345a5447aa640c640b8bc44a501ec5c84c255e6)
 declare_datasource (FILE s11111111_ref.7.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.7.header
-                    URL_HASH SHA256=3524f7b65566ef2de0b898227c378a3de217c3240d804b60111fe8272bb8606e)
+                    URL_HASH SHA256=167b50db02aa4c53ed11c0505340ad09b83c7f9088dba990a23273643a2f483b)
+declare_datasource (FILE s11111111_ref.7.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s11111111/ref.7.minimiser
+                    URL_HASH SHA256=f593ca9e1672ecc9d5b4fa9a9d9cc4f1c721f7dd9fa52ac82ba4288a24321473)
 declare_datasource (FILE s1001_ref.7.header
                     URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.7.header
-                    URL_HASH SHA256=af8cd3c0215c63652388164bd45f69fb34ee7aa6a43d1dfd5d9fb32deca2e9c6)
+                    URL_HASH SHA256=dcaad7664ae29715722dbfe99db9794abbe306883e7505b414a08bdc370855bf)
+declare_datasource (FILE s1001_ref.7.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/prepare/s1001/ref.7.minimiser
+                    URL_HASH SHA256=aae89fc0f03e2959ae4d701a80cc3915918c950b159f6abb6c92c1433b1a8534)

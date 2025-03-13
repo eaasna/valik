@@ -169,5 +169,14 @@ for b in $(seq 0 7); do
         sha=($(shasum -a 256 s$shape/$file))
         echo -n $sha >> ../datasources.cmake
         echo ")" >> ../datasources.cmake
+
+        file="ref.$b.minimiser"
+        echo -n "declare_datasource (FILE s${shape}_${file}
+                    URL \${CMAKE_SOURCE_DIR}/test/data/prepare/s$shape/${file}
+                    URL_HASH SHA256=" >> ../datasources.cmake
+
+        sha=($(shasum -a 256 s$shape/$file))
+        echo -n $sha >> ../datasources.cmake
+        echo ")" >> ../datasources.cmake
     done
 done
