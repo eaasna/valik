@@ -67,7 +67,6 @@ struct split_arguments
     uint32_t seg_count_in{std::numeric_limits<uint32_t>::max()};
     float error_rate{0.05};
     uint8_t errors{0};
-    float fpr{0.05};
     uint8_t kmer_size{std::numeric_limits<uint8_t>::max()};
     std::string shape_str{};
     seqan3::shape shape{};
@@ -78,18 +77,11 @@ struct split_arguments
     bool write_out{false};
     bool split_query{false};
     bool only_split{false};
-    bool verbose{false};
 };
 
-struct build_arguments
+struct build_arguments final : public split_arguments
 {
-    uint32_t window_size{23u};
-    uint8_t kmer_size{20};
-    seqan3::shape shape{seqan3::ungapped{20u}};
-    uint8_t shape_weight{shape.count()};
     uint8_t threads{1u};
-
-    std::vector<std::string> bin_path{};
     std::filesystem::path out_path;
     std::filesystem::path out_dir{"./"};
     float fpr{0.05};

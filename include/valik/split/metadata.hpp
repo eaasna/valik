@@ -386,7 +386,7 @@ struct metadata
                                          " sequences into " + std::to_string(arguments.seg_count) + " segments.");
             }
 
-            if constexpr (std::is_same<arg_t, split_arguments>::value)
+            if constexpr (std::is_same<arg_t, build_arguments>::value)
                 make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
             else
                 make_equal_length_segments(arguments.pattern_size, first_long_seq);
@@ -424,7 +424,7 @@ struct metadata
         /**
          * @brief Constructor that scans a sequence database to create a metadata struct.
         */
-        metadata(split_arguments const & arguments)
+        metadata(build_arguments const & arguments)
         {
             ibf_fpr = arguments.fpr;
             if (arguments.metagenome)

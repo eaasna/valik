@@ -32,6 +32,7 @@ private:
     seqan3::shape shape_{};
     std::vector<std::string> bin_path_{};
     std::vector<size_t> entropy_ranking_{};
+    double information_content_{};
     data_t ibf_{};
 
 public:
@@ -92,6 +93,11 @@ public:
         return entropy_ranking_;
     }
 
+    double information_content() const
+    {
+        return information_content_;
+    }
+
     data_t & ibf()
     {
         return ibf_;
@@ -122,6 +128,7 @@ public:
                 archive(shape_);
                 archive(bin_path_);
                 archive(entropy_ranking_);
+                archive(information_content_);
                 archive(ibf_);
             }
             catch (std::exception const & e)

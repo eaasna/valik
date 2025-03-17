@@ -8,7 +8,7 @@ namespace valik::app
  *
  * @param arguments Command line arguments.
  */
-void valik_split(split_arguments & arguments)
+void valik_split(build_arguments & arguments)
 {
     if (arguments.only_split)
     {
