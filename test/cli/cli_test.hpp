@@ -438,18 +438,14 @@ struct valik_base : public cli_test
 
         if constexpr(is_ibf)
         {
-            for (auto const && [expected_list, actual_list] : seqan3::views::zip(all_expected_bins, all_actual_bins))
+            for (auto const && [expected_file, actual_file] : seqan3::views::zip(all_expected_bins, all_actual_bins))
             {
-                EXPECT_TRUE(std::ranges::distance(expected_list) > 0);
-                for (auto const && [expected_file, actual_file] : seqan3::views::zip(expected_list, actual_list))
-                {
-                    std::filesystem::path const expected_path(expected_file);
-                    std::filesystem::path const actual_path(actual_file);
-                    if (compare_ext)
-                        ASSERT_EQ(expected_path.filename(), actual_path.filename());
-                    else
-                        ASSERT_EQ(expected_path.stem(), actual_path.stem());
-                }
+                std::filesystem::path const expected_path(expected_file);
+                std::filesystem::path const actual_path(actual_file);
+                if (compare_ext)
+                    ASSERT_EQ(expected_path.filename(), actual_path.filename());
+                else
+                    ASSERT_EQ(expected_path.stem(), actual_path.stem());
             }
         }
         else
@@ -469,9 +465,9 @@ struct valik_base : public cli_test
             auto expected_filenames_view = all_expected_bins | filenames;
             auto actual_filenames_view = all_actual_bins | filenames;
 
-            std::vector<std::vector<std::string>> expected_filenames(expected_filenames_view.begin(),
+            std::vector<std::string> expected_filenames(expected_filenames_view.begin(),
                                                                      expected_filenames_view.end());
-            std::vector<std::vector<std::string>> actual_filenames(actual_filenames_view.begin(),
+            std::vector<std::string> actual_filenames(actual_filenames_view.begin(),
                                                                    actual_filenames_view.end());
             std::ranges::sort(expected_filenames);
             std::ranges::sort(actual_filenames);

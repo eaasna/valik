@@ -37,6 +37,7 @@ echo "### valik split input ###"
 ./split/cli_test_input.sh $SEED
 
 echo "### valik build input ###"
+./prepare/api_test_input.sh
 ./build/cli_test_input.sh $SEED $BIN_NUMBER $HAPLOTYPE_COUNT
 
 echo "### valik search input ###"

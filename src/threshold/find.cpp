@@ -9,6 +9,7 @@ namespace valik
 param_set get_best_params(search_pattern const & pattern,
                           metadata const & ref_meta,
                           fn_confs const & fn_attr,
+                          double const information_content, 
                           bool const verbose) 
 {
     param_space space = fn_attr.space;
@@ -26,7 +27,7 @@ param_set get_best_params(search_pattern const & pattern,
     }
 
     param_set best_params(space.min_k(), 1, space);
-    auto best_score = score(fn_attr.get_kmer_loss(space.min_k()), pattern, best_params, ref_meta, PATTERNS_PER_SEGMENT);
+    auto best_score = score(fn_attr.get_kmer_loss(space.min_k()), pattern, best_params, ref_meta, PATTERNS_PER_SEGMENT, information_content);
 
     std::vector<std::vector<double>> scores;
     std::vector<std::vector<double>> fn_rates;
@@ -48,10 +49,10 @@ param_set get_best_params(search_pattern const & pattern,
             for (uint8_t t = 1; t <= space.max_thresh; t++)
             {
                 param_set params(k, t, param_space());
-                auto param_score = score(attr, pattern, params, ref_meta, PATTERNS_PER_SEGMENT);
+                auto param_score = score(attr, pattern, params, ref_meta, PATTERNS_PER_SEGMENT, information_content);
                 kmer_scores.push_back(param_score);
                 kmer_fn.push_back(attr.fnr_for_param_set(pattern, params));
-                kmer_fp.push_back(ref_meta.pattern_spurious_match_prob(params));
+                kmer_fp.push_back(ref_meta.pattern_spurious_match_prob(params, information_content));
                 if (param_score <= best_score)
                 {
                     best_score = param_score;
@@ -105,7 +106,8 @@ param_set get_best_params(search_pattern const & pattern,
 */
 search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                                                   kmer_loss attr, 
-                                                  uint8_t const max_errors)
+                                                  uint8_t const max_errors, 
+                                                  double const information_content)
 {
     constexpr param_space space{};
     search_kmer_profile kmer_thresh{attr.kmer, ref_meta.pattern_size};
@@ -121,7 +123,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
             {
                 auto best_params = param_set(attr.kmer, attr.kmer.lemma_threshold(pattern.l, errors));
                 double fnr{0}; // == attr.fnr_for_param_set(pattern, best_params)
-                double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params);
+                double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params, information_content);
                 kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern});
             }
             else
@@ -129,14 +131,14 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                 auto best_params = param_set(attr.kmer, attr.kmer.lemma_threshold(pattern.l, errors), space);
                 auto try_params = best_params;
                 if ((best_params.t < THRESH_LOWER) ||  
-                    segment_fpr(ref_meta.pattern_spurious_match_prob(best_params), PATTERNS_PER_SEGMENT) > FPR_UPPER)
+                    segment_fpr(ref_meta.pattern_spurious_match_prob(best_params, information_content), PATTERNS_PER_SEGMENT) > FPR_UPPER)
                 {
                     search_type = search_kind::STELLAR;
                     try_params.t++;
                     while ((try_params.t <= space.max_thresh) && 
                             (attr.fnr_for_param_set(pattern, try_params) < FNR_UPPER))
                     {
-                        if (segment_fpr(ref_meta.pattern_spurious_match_prob(try_params), PATTERNS_PER_SEGMENT) <= FPR_UPPER)
+                        if (segment_fpr(ref_meta.pattern_spurious_match_prob(try_params, information_content), PATTERNS_PER_SEGMENT) <= FPR_UPPER)
                         {
                             best_params = std::move(try_params);
                             search_type = search_kind::HEURISTIC;
@@ -152,7 +154,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                 else
                 {
                     double fnr = attr.fnr_for_param_set(pattern, best_params);
-                    double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params);
+                    double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params, information_content);
                     kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern});
                 }
             }
@@ -169,7 +171,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
             {
                 auto best_params = param_set(attr.kmer, attr.kmer.gapped_threshold(pattern.l, errors));
                 double fnr{0}; // == attr.fnr_for_param_set(pattern, best_params)
-                double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params);
+                double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params, information_content);
                 kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern});
             }
             else
@@ -177,14 +179,14 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                 auto best_params = param_set(attr.kmer, attr.kmer.gapped_threshold(pattern.l, errors), space);
                 auto try_params = best_params;
                 if ((best_params.t < THRESH_LOWER) ||  
-                    segment_fpr(ref_meta.pattern_spurious_match_prob(best_params), PATTERNS_PER_SEGMENT) > FPR_UPPER)
+                    segment_fpr(ref_meta.pattern_spurious_match_prob(best_params, information_content), PATTERNS_PER_SEGMENT) > FPR_UPPER)
                 {
                     search_type = search_kind::STELLAR;
                     try_params.t++;
                     while ((try_params.t <= space.max_thresh) && 
                             (attr.fnr_for_param_set(pattern, try_params) < FNR_UPPER))
                     {
-                        if (segment_fpr(ref_meta.pattern_spurious_match_prob(try_params), PATTERNS_PER_SEGMENT) <= FPR_UPPER)
+                        if (segment_fpr(ref_meta.pattern_spurious_match_prob(try_params, information_content), PATTERNS_PER_SEGMENT) <= FPR_UPPER)
                         {
                             best_params = std::move(try_params);
                             search_type = search_kind::HEURISTIC;
@@ -200,7 +202,7 @@ search_kmer_profile find_thresholds_for_kmer_size(metadata const & ref_meta,
                 else
                 {
                     double fnr = attr.fnr_for_param_set(pattern, best_params);
-                    double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params);
+                    double fp_per_pattern = ref_meta.pattern_spurious_match_prob(best_params, information_content);
                     kmer_thresh.add_error_rate(errors, {best_params, pattern, search_type, fnr, fp_per_pattern});
                 }
             }

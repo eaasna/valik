@@ -74,7 +74,7 @@ TEST(write_ref_sequences, o20_b16)
     test_reference_out(overlap, bins);
 }
 
-static void const test_query_out(size_t overlap, size_t bins)
+static void test_query_out(size_t overlap, size_t bins)
 {
     std::string path_prefix = "write_out_" + std::to_string(overlap) + "_" + std::to_string(bins);
 

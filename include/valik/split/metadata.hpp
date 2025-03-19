@@ -229,31 +229,28 @@ struct metadata
          *
          * @param bin_path Database paths.
          */
-        void scan_metagenome_bins(std::vector<std::vector<std::string>> const & bin_path)
+        void scan_metagenome_bins(std::vector<std::string> const & bin_path)
         {
             using traits_type = seqan3::sequence_file_input_default_traits_dna;
             size_t file_id{0};
-            for (std::vector<std::string> bin_files : bin_path)
+            for (std::string bin_file : bin_path)
             {
                 uint64_t bin_len{0};
                 std::vector<size_t> bin_seq_ids;
-                for (std::string bin_file : bin_files)
+                files.emplace_back(file_id, bin_file);
+                seqan3::sequence_file_input<traits_type> fin{bin_file};
+                size_t fasta_ind = sequences.size();
+                for (auto & record : fin)
                 {
-                    files.emplace_back(file_id, bin_file);
-                    seqan3::sequence_file_input<traits_type> fin{bin_file};
-                    size_t fasta_ind = sequences.size();
-                    for (auto & record : fin)
-                    {
-                        trim_fasta_id(record.id());
-                        sequence_stats seq(file_id, record.id(), fasta_ind, record.sequence().size());
-                        total_len += seq.len;
-                        bin_len += seq.len;
-                        bin_seq_ids.push_back(fasta_ind);
-                        sequences.push_back(seq);
-                        fasta_ind++;
-                    }
-                    file_id++;
+                    trim_fasta_id(record.id());
+                    sequence_stats seq(file_id, record.id(), fasta_ind, record.sequence().size());
+                    total_len += seq.len;
+                    bin_len += seq.len;
+                    bin_seq_ids.push_back(fasta_ind);
+                    sequences.push_back(seq);
+                    fasta_ind++;
                 }
+                file_id++;
                 add_segment(segments.size(), bin_seq_ids, bin_len); 
             }
         }
@@ -389,7 +386,7 @@ struct metadata
                                          " sequences into " + std::to_string(arguments.seg_count) + " segments.");
             }
 
-            if constexpr (std::is_same<arg_t, split_arguments>::value)
+            if constexpr (std::is_same<arg_t, build_arguments>::value)
                 make_exactly_n_segments(arguments.seg_count, arguments.pattern_size, first_long_seq);
             else
                 make_equal_length_segments(arguments.pattern_size, first_long_seq);
@@ -427,7 +424,7 @@ struct metadata
         /**
          * @brief Constructor that scans a sequence database to create a metadata struct.
         */
-        metadata(split_arguments const & arguments)
+        metadata(build_arguments const & arguments)
         {
             ibf_fpr = arguments.fpr;
             if (arguments.metagenome)
@@ -436,7 +433,7 @@ struct metadata
             }
             else
             {
-                scan_database_file(arguments.bin_path[0][0]);
+                scan_database_file(arguments.bin_path[0]);
                 scan_database_sequences(arguments);
             }
 
@@ -607,7 +604,7 @@ struct metadata
         /**
         * @brief The probability of at least threshold k-mers matching spuriously between a query pattern and a reference bin.
         */
-        double pattern_spurious_match_prob(param_set const & params, double const information_content = 0.35) const
+        double pattern_spurious_match_prob(param_set const & params, double const information_content) const
         {
             double fpr{1};
             double p = ibf_fpr + kmer_spurious_match_prob(params.kmer.weight());

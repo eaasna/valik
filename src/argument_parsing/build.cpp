@@ -1,3 +1,4 @@
+#include <valik/split/split.hpp>
 #include <valik/argument_parsing/build.hpp>
 
 namespace valik::app
@@ -5,7 +6,50 @@ namespace valik::app
 
 void init_build_parser(sharg::parser & parser, build_arguments & arguments)
 {
+    param_space space{};
     init_shared_meta(parser);
+
+    /////////////////////////////////////////
+    // Split options
+    /////////////////////////////////////////
+    parser.add_positional_option(arguments.db_file,
+                      sharg::config{.description = "File containing database sequences. If splitting --metagenome provide a text file with a list of cluster paths.",
+                      .validator = sharg::input_file_validator{}});
+    parser.add_option(arguments.pattern_size,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "pattern",
+                      .description = "Choose how much consecutive segments overlap. This is the minimum length of a local alignment.",
+                      .validator = sharg::arithmetic_range_validator{10u, 1000u}});
+    parser.add_option(arguments.error_rate,
+                      sharg::config{.short_id = 'e',
+                      .long_id = "error-rate",
+                      .description = "Choose the upper bound for the maximum allowed error rate of a local match.",
+                      .validator = sharg::arithmetic_range_validator{0.0f, 0.2f}});
+    parser.add_option(arguments.fpr,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "fpr",
+                      .description = "False positive rate of IBF.",
+                      .validator = sharg::arithmetic_range_validator{0.0001f, 0.5f}});
+    parser.add_option(arguments.kmer_size,
+                      sharg::config{.short_id = 'k',
+                      .long_id = "kmer",
+                      .description = "Choose the ungapped kmer size.",
+                      .validator = sharg::arithmetic_range_validator{space.min_k(), space.max_k()}});
+    parser.add_option(arguments.shape_str,
+                      sharg::config{.short_id = 's',
+                      .long_id = "shape",
+                      .description = "Choose the kmer shape. E.g 15-mer with two gaps: 111110111011111.",
+                      .validator = sharg::regex_validator{"[01]+"}});
+    parser.add_option(arguments.seg_count_in,
+                      sharg::config{.short_id = 'n',
+                      .long_id = "seg-count",
+                      .description = "The suggested number of database segments that might be adjusted by the split algorithm.",
+                      .validator = positive_integer_validator{false}});
+    parser.add_flag(arguments.metagenome,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "metagenome",
+                      .description = "Split a clustered metagenome database. Reference input is a list of cluster paths"});
+
     parser.add_option(arguments.out_path,
                       sharg::config{.short_id = '\0',
                       .long_id = "output",
@@ -15,7 +59,7 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
     parser.add_option(arguments.ref_meta_path,
                     sharg::config{.short_id = '\0',
                     .long_id = "ref-meta",
-                    .description = "Path to reference metadata created by valik split.",
+                    .description = "Path to reference metadata output.",
                     .required = true,
                     .validator = sharg::input_file_validator{}});
     parser.add_option(arguments.threads,
@@ -35,6 +79,11 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
     /////////////////////////////////////////
     // Advanced options
     /////////////////////////////////////////
+    parser.add_flag(arguments.write_out,
+                      sharg::config{.short_id = '\0',
+                      .long_id = "write-out",
+                      .description = "Write an output FASTA file for each reference segment or write all query segments into a single output FASTA file.",
+                      .advanced = true});
     parser.add_option(arguments.window_size,
                       sharg::config{.short_id = 'w',
                       .long_id = "window",
@@ -78,11 +127,6 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
                                     .description = "Only store k-mers with no more than (<=) x occurrences. "
                                                    "Mutually exclusive with --use-filesize-dependent-cutoff.",
                                     .validator = sharg::arithmetic_range_validator{1, 254}});
-    parser.add_flag(arguments.use_filesize_dependent_cutoff,
-                    sharg::config{.short_id = '\0',
-                                  .long_id = "use-filesize-dependent-cutoff",
-                                  .description = "Apply cutoffs from Mantis(Pandey et al., 2018). "
-                                                 "Mutually exclusive with --kmer-count-cutoff."});
 }
 
 void run_build(sharg::parser & parser)
@@ -90,6 +134,74 @@ void run_build(sharg::parser & parser)
     build_arguments arguments{};
     init_build_parser(parser, arguments);
     try_parsing(parser);
+
+    if (parser.is_option_set("kmer"))
+    {
+        if (parser.is_option_set("shape"))
+        {
+            throw sharg::parser_error{"Arguments --kmer and --shape are mutually exclusive."};
+        }
+        else
+        {
+            arguments.shape = seqan3::shape{seqan3::ungapped(arguments.kmer_size)};
+            arguments.shape_str = std::string(arguments.kmer_size, '1');
+            arguments.shape_weight = arguments.kmer_size;
+        }
+    }
+
+    if (parser.is_option_set("shape"))
+    {
+        uint64_t bin_shape{};
+        std::from_chars(arguments.shape_str.data(), arguments.shape_str.data() + arguments.shape_str.size(), bin_shape, 2);
+        arguments.shape = seqan3::shape(seqan3::bin_literal{bin_shape});
+        arguments.kmer_size = arguments.shape.size();
+        arguments.shape_weight = arguments.shape.count();
+    }
+
+    arguments.errors = std::ceil(arguments.error_rate * arguments.pattern_size);
+    // ==========================================
+    // Process bin_path:
+    // if building from clustered sequences each line in input corresponds to a bin
+    // if building from overlapping segments all sequences in one reference file
+    // ==========================================
+    auto sequence_file_validator{bin_validator{}.sequence_file_validator};
+
+    if (arguments.metagenome)
+    {
+        std::ifstream istrm{arguments.db_file};
+        std::string bin_path;
+        while (std::getline(istrm, bin_path))
+        {
+            if (!bin_path.empty())
+            {
+                sequence_file_validator(bin_path);
+                arguments.bin_path.emplace_back(bin_path);
+            }
+        }
+    }
+    else
+    {
+        sequence_file_validator(arguments.db_file);
+        std::string bin_string{arguments.db_file.string()};
+        arguments.bin_path.emplace_back(bin_string);
+    }
+
+    if (!parser.is_option_set("out"))
+    {
+        arguments.meta_out = arguments.db_file;
+        arguments.meta_out.replace_extension("bin");
+    }
+
+    if (parser.is_option_set("seg-count") && !arguments.only_split)
+    {
+        std::cerr << "WARNING: seg count will be adjusted to the next multiple of 64. "
+                  << "Set --without-parameter-tuning to force manual input.\n";
+    }
+
+    // ==========================================
+    // Dispatch
+    // ==========================================
+    valik_split(arguments);
 
     if (!arguments.manual_parameters)
     {
@@ -130,12 +242,10 @@ void run_build(sharg::parser & parser)
     // if building from clustered sequences each line in input corresponds to a bin
     // if building from overlapping segments all sequences in one reference file
     // ==========================================
-    auto sequence_file_validator{bin_validator{}.sequence_file_validator};
-
     metadata meta(arguments.ref_meta_path);
     arguments.bins = meta.seg_count;
     if (meta.files.size() == 1)
-        arguments.bin_path.push_back(std::vector<std::string>{meta.files[0].path});
+        arguments.bin_path.push_back(meta.files[0].path);
     else
     {
         for (auto & seg : meta.segments)
@@ -145,20 +255,15 @@ void run_build(sharg::parser & parser)
             {
                 file_ids.emplace(meta.sequences[seq_id].file_id);
             }
-            std::vector<std::string> bin_files{};
-            for (size_t file_id : file_ids)
-            {
-                bin_files.push_back(meta.files[file_id].path);
-            }
-            arguments.bin_path.push_back(bin_files);
+            
+            assert(file_ids.size() == 1);
+            arguments.bin_path.push_back(meta.files[*file_ids.begin()].path);
         }
     }
 
     // ==========================================
     // Process minimiser parameters for IBF size calculation.
     // ==========================================
-    if ((parser.is_option_set("kmer-count-min") || parser.is_option_set("kmer-count-max")) && parser.is_option_set("use-filesize-dependent-cutoff"))
-        throw sharg::parser_error{"You cannot use both --kmer-count-cutoff and --use-filesize-dependent-cutoff."};
         
     try
     {

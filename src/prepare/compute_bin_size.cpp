@@ -38,9 +38,8 @@ void compute_minimiser(valik::build_arguments const & arguments)
         file_reader<file_types::sequence> const reader{arguments.shape, arguments.window_size};
         auto cluster_worker = [&](auto && zipped_view, auto &&)
         {
-            for (auto && [file_names, bin_number] : zipped_view)
+            for (auto && [file_name, bin_number] : zipped_view)
             {
-                std::filesystem::path const file_name{file_names[0]};
                 size_t const seq_size = std::filesystem::file_size(file_name);
                 std::filesystem::path output_path = get_output_path(arguments.out_dir, file_name);
 
@@ -65,7 +64,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
                 // and clear+reuse it for every file that a thread works on. However, this dramatically increases
                 // memory consumption because the map will stay as big as needed for the biggest encountered file.
 
-                reader.for_each_hash(file_names,
+                reader.for_each_hash(file_name,
                                      [&](auto && hash)
                                      {
                                          distinct_minimisers.insert(hash);
@@ -101,7 +100,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
     else
     {
         valik::metadata meta(arguments.ref_meta_path);
-        std::filesystem::path const file_name{arguments.bin_path[0][0]};
+        std::filesystem::path const file_name{arguments.bin_path[0]};
         
         auto segment_worker = [&](const auto && zipped_view, auto &&)
         {
@@ -173,7 +172,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
         reference_records.reserve(arguments.threads);
         size_t seq_ind{0};
         size_t processed_bin_count{0};
-        for (auto && [seq] : sequence_file_t{arguments.bin_path[0][0]})
+        for (auto && [seq] : sequence_file_t{arguments.bin_path[0]})
         {
             auto shared_seq = std::make_shared<sequence_t>(seq);
             for (auto && seg : meta.segments_from_ind(seq_ind))
@@ -203,7 +202,7 @@ void compute_minimiser(valik::build_arguments const & arguments)
 namespace detail
 {
 
-size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> const & minimiser_bin_path, uint8_t const threads)
+size_t kmer_count_from_minimiser_files(std::vector<std::string> const & minimiser_bin_path, uint8_t const threads)
 {
     std::mutex callback_mutex{};
     size_t max_filesize{};
@@ -225,17 +224,14 @@ size_t kmer_count_from_minimiser_files(std::vector<std::vector<std::string>> con
         std::filesystem::path biggest_file{};
         size_t max_filesize{};
 
-        for (auto && [file_names, bin_number] : zipped_view)
+        for (auto && [file_name, bin_number] : zipped_view)
         {
-            for (auto && file_name : file_names)
+            minimiser_file = file_name;
+            size_t const size = std::filesystem::file_size(minimiser_file);
+            if (size > max_filesize)
             {
-                minimiser_file = file_name;
-                size_t const size = std::filesystem::file_size(minimiser_file);
-                if (size > max_filesize)
-                {
-                    max_filesize = size;
-                    biggest_file = minimiser_file;
-                }
+                max_filesize = size;
+                biggest_file = minimiser_file;
             }
         }
 
@@ -319,7 +315,7 @@ size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
             }
         };
 
-        for (auto && [seq] : sequence_file_t{arguments.bin_path[0][0]})
+        for (auto && [seq] : sequence_file_t{arguments.bin_path[0]})
         {
             valik::metadata meta(arguments.ref_meta_path);
             auto shared_seq = std::make_shared<sequence_t>(seq);
@@ -354,7 +350,7 @@ size_t kmer_count_from_sequence_files(valik::build_arguments const & arguments)
 
 size_t compute_bin_size(valik::build_arguments const & arguments)
 {
-    std::vector<std::vector<std::string>> minimiser_files{};
+    std::vector<std::string> minimiser_files{};
     if (arguments.input_is_minimiser)
     {
         minimiser_files = parse_bin_paths(arguments);

@@ -12,8 +12,8 @@ chr1	Stellar	eps-matches	137	291	96.129	-	.	9_2300;seq2Range=1,150;cigar=1M5D149
 chr1	Stellar	eps-matches	132	286	96.129	-	.	9_2300;seq2Range=1,150;cigar=145M2D2M3D3M;mutations=111G
 chr1	Stellar	eps-matches	495	647	96.0784	-	.	5_1023;seq2Range=1,150;cigar=3D150M;mutations=14A,90G,124T
 chr1	Stellar	eps-matches	492	644	96.0784	-	.	5_1023;seq2Range=1,150;cigar=144M1D3M1D1M1D2M;mutations=14A,90G,124T
+chr2	Stellar	eps-matches	609	761	96.0784	+	.	4_1023;seq2Range=1,150;cigar=1M3D149M;mutations=69G,74A,92G
 chr1	Stellar	eps-matches	612	764	96.0784	+	.	4_1023;seq2Range=1,150;cigar=148M1D1M1D1M1D;mutations=69G,74A,92G
-chr1	Stellar	eps-matches	609	761	96.0784	+	.	4_1023;seq2Range=1,150;cigar=1M3D149M;mutations=69G,74A,92G
 chr2	Stellar	eps-matches	11	163	96.0784	+	.	1_1023;seq2Range=1,150;cigar=149M2D1M1D;mutations=68A,79T,142T
 chr1	Stellar	eps-matches	11	163	96.0784	+	.	1_1023;seq2Range=1,150;cigar=149M2D1M1D;mutations=68A,79T,142T
 chr3	Stellar	eps-matches	2154	2306	96.0784	+	.	2_3030;seq2Range=1,150;cigar=147M2D3M1D;mutations=16G,23C,67T

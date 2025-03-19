@@ -22,15 +22,6 @@ TEST_F(valik_split_clusters, split_metagenome_clusters)
             std::string file_path = cli_test::data("bin_" + std::to_string(i) + ".fasta");
             one_per_bin << file_path << '\n';
         }
-    
-        std::ofstream two_per_bin{"multi_seq_bin_paths.txt"};
-        for (size_t i{0}; i < genome_count; i = i + 2)
-        {
-            std::string file_path = cli_test::data("bin_" + std::to_string(i) + ".fasta");
-            two_per_bin << file_path << '\t';
-            file_path = cli_test::data("bin_" + std::to_string(i+1) + ".fasta");
-            two_per_bin << file_path << '\n';
-        }
     }
 
     cli_test_result const result_one_per_bin = execute_app("valik", "split",
@@ -45,19 +36,6 @@ TEST_F(valik_split_clusters, split_metagenome_clusters)
     EXPECT_EQ(one_per_bin_meta.seq_count, genome_count * 2);
     EXPECT_EQ(one_per_bin_meta.seg_count, genome_count);
 
-    cli_test_result const result_two_per_bin = execute_app("valik", "split",
-                                                                    "--metagenome",
-                                                                    "--out multi_seq_meta.bin",
-                                                                    "multi_seq_bin_paths.txt");
-    EXPECT_EQ(result_two_per_bin.exit_code, 0);
-    EXPECT_EQ(result_two_per_bin.out, std::string{});
-    EXPECT_EQ(result_two_per_bin.err, std::string{});
-
-    auto two_per_bin_meta = valik::metadata("multi_seq_meta.bin");
-    EXPECT_EQ(two_per_bin_meta.seq_count, genome_count * 2);
-    EXPECT_EQ(two_per_bin_meta.seg_count, genome_count / 2u);
-
-    EXPECT_EQ(one_per_bin_meta.total_len, two_per_bin_meta.total_len);
     EXPECT_EQ(one_per_bin_meta.total_len, 8192*2);    // hard coded value from test/data/build/cli_test_input.sh
 }
 

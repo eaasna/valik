@@ -52,33 +52,29 @@ private:
         {
             auto minimiser_worker = [&] (auto && zipped_view, auto &&)
             {
-                for (auto && [file_names, bin_number] : zipped_view)
+                for (auto && [file_name, bin_number] : zipped_view)
                 {
-                    for (auto & filename : file_names)
+                    std::ifstream fin{file_name, std::ios::binary};
+                    uint64_t value;
+                    while (fin.read(reinterpret_cast<char *>(&value), sizeof(value)))
                     {
-                        std::ifstream fin{filename, std::ios::binary};
-                        uint64_t value;
-                        while (fin.read(reinterpret_cast<char *>(&value), sizeof(value)))
-                        {
-                            ibf.emplace(value, seqan3::bin_index{bin_number});
-                        }
+                        ibf.emplace(value, seqan3::bin_index{bin_number});
                     }
                 }
             };
 
-            std::vector<std::vector<std::string>> file_paths = parse_bin_paths(*arguments);
+            std::vector<std::string> file_paths = parse_bin_paths(*arguments);
             call_parallel_on_bins(minimiser_worker, file_paths, arguments->threads);
 
-            std::vector<std::vector<std::string>> header_paths = parse_bin_paths(*arguments, "header");
+            std::vector<std::string> header_paths = parse_bin_paths(*arguments, "header");
             std::string shape_string{};
             uint64_t window_size{};
             size_t count{};
             uint64_t bin_size{};
             entropy_ranking.reserve(header_paths.size());
-            for (auto && [file_names, bin_number] : seqan3::views::zip(header_paths, std::views::iota(0u)))
+            for (auto && [file_name, bin_number] : seqan3::views::zip(header_paths, std::views::iota(0u)))
             {
-                //!TODO: disallow multiple files per bin
-                std::ifstream file_stream{file_names[0]};
+                std::ifstream file_stream{file_name};
                 file_stream >> shape_string >> window_size >> count >> bin_size;
                 entropy_map.emplace_back(std::make_pair((size_t) bin_number, (double) count / (double) bin_size));
             }
@@ -95,16 +91,13 @@ private:
         {
             auto clustered_reference_worker = [&] (auto && zipped_view, auto &&)
             {
-                for (auto && [file_names, bin_number] : zipped_view)
+                for (auto && [file_name, bin_number] : zipped_view)
                 {
-                    for (auto & filename : file_names)
+                    for (auto && record : sequence_file_t{file_name})
                     {
-                        for (auto && record : sequence_file_t{filename})
+                        for (auto && value : record.sequence() | hash_view())
                         {
-                            for (auto && value : record.sequence() | hash_view())
-                            {
-                                ibf.emplace(value, seqan3::bin_index{bin_number});
-                            }
+                            ibf.emplace(value, seqan3::bin_index{bin_number});
                         }
                     }
                 }
@@ -120,7 +113,7 @@ private:
             auto min_view = hash_view();
 
             size_t i{0};
-            for (auto && [seq] : sequence_file_t{arguments->bin_path[0][0]})
+            for (auto && [seq] : sequence_file_t{arguments->bin_path[0]})
             {
                 for (auto & seg : meta.segments_from_ind(i))
                 {

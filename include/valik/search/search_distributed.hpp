@@ -98,7 +98,7 @@ bool search_distributed(search_arguments & arguments, search_time_statistics & t
                         throw std::runtime_error("Ambiguous sequence for distributed search.");
 
                     // search segments of a single reference file
-                    process_args.insert(process_args.end(), {arguments.bin_path[0][0], std::string(cart_queries_path),
+                    process_args.insert(process_args.end(), {arguments.bin_path[0], std::string(cart_queries_path),
                                                             "--referenceLength", std::to_string(ref_len),
                                                             "--sequenceOfInterest", std::to_string(seg.seq_vec[0]),
                                                             "--segmentBegin", std::to_string(seg.start),
@@ -111,7 +111,7 @@ bool search_distributed(search_arguments & arguments, search_time_statistics & t
                         throw std::runtime_error("Could not find reference file with index " + std::to_string(bin_id) +
                         ". Did you forget to provide metadata to search segments in a single reference file instead?");
                     }
-                    process_args.insert(process_args.end(), {arguments.bin_path[bin_id][0], std::string(cart_queries_path)});
+                    process_args.insert(process_args.end(), {arguments.bin_path[bin_id], std::string(cart_queries_path)});
                 }
 
                 if (arguments.write_time)

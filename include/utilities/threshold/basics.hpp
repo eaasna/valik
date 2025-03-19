@@ -23,7 +23,6 @@ constexpr uint8_t query_every = 2; // query every 2nd pattern by default
  * 
  * @param bin_size Size of reference segment in bases.
  * @param kmer_size K-mer size.
- * @param information_content How much of the sequence is unique across the genome.
  * 
 */
 template <typename var_t, typename par_t>

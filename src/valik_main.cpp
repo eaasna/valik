@@ -11,14 +11,12 @@ int main(int argc, char ** argv)
 {
     try
     {
-        sharg::parser top_level_parser{"valik", argc, argv, sharg::update_notifications::off, {"split", "build", "search"}};
+        sharg::parser top_level_parser{"valik", argc, argv, sharg::update_notifications::off, {"build", "search"}};
         valik::app::init_top_level_parser(top_level_parser);
 
         valik::app::try_parsing(top_level_parser);
 
         sharg::parser & sub_parser = top_level_parser.get_sub_parser();
-        if (sub_parser.info.app_name == std::string_view{"valik-split"})
-            valik::app::run_split(sub_parser);
         if (sub_parser.info.app_name == std::string_view{"valik-build"})
             valik::app::run_build(sub_parser);
         if (sub_parser.info.app_name == std::string_view{"valik-search"})
