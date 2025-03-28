@@ -222,6 +222,19 @@ allOrBestLocal(Segment<Segment<TSequence const, InfixSegment>, InfixSegment> con
     // diagonals for banded local alignment
     int64_t upperDiag = 0;
     int64_t lowerDiag = endPosition(infH) - (int64_t)endPosition(infV) - beginPosition(infH) + beginPosition(infV);
+
+    std::cerr << "endPosition(infH)\t" << endPosition(infH) << '\n';
+    std::cerr << "(int64_t)endPosition(infV)\t" << (int64_t)endPosition(infV) << '\n';
+    std::cerr << "beginPosition(infH)\t" << beginPosition(infH) << '\n';
+    std::cerr << "beginPosition(infV)\t" << beginPosition(infV) << '\n';
+    std::cerr << "length infH\t" << endPosition(infH) - (int64_t)beginPosition(infH) << '\n';
+    std::cerr << "infH\t" << infH << '\n';
+    
+    std::cerr << "length infV\t" << endPosition(infV) - (int64_t)beginPosition(infV) << '\n';
+    std::cerr << "infV\t" << infV << '\n';
+
+    std::cerr << "lowerDiag\t" << lowerDiag << '\n';
+
     if (beginPosition(infV) == 0) {
         if (endPosition(infV) == endPosition(host(infV))) {
             // TODO: is it possible to get a smaller band in this case?
@@ -229,8 +242,19 @@ allOrBestLocal(Segment<Segment<TSequence const, InfixSegment>, InfixSegment> con
             lowerDiag = -(int64_t)delta;
         } else
             upperDiag = lowerDiag + delta;
-    } else if (endPosition(infV) == endPosition(host(infV)))
+    } else if (endPosition(infV) == endPosition(host(infV))) {
         lowerDiag = -(int64_t)delta;
+    } 
+    /*
+    else if ((endPosition(infH) - (int64_t)beginPosition(infH)) > (endPosition(infV) - beginPosition(infV))) {
+        upperDiag = delta;
+        lowerDiag = -(int64_t)delta;
+    }
+    */
+    
+    std::cerr << "delta\t" << delta << '\n';
+    std::cerr << "upperDiag\t" << upperDiag << '\n';
+    std::cerr << "lowerDiag\t" << lowerDiag << '\n';
 
     // banded local alignment
     LocalAlignmentEnumerator<Score<TScore>, Banded> enumerator(scoreMatrix, lowerDiag, upperDiag, minScore);

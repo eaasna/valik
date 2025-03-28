@@ -22,6 +22,12 @@ StellarQuerySegment<TAlphabet>::fromPatternMatch(TSwiftPattern const & swiftPatt
     static_assert(std::is_same_v<decltype(underlyingQuery), seqan2::String<TAlphabet> const &>);
     auto const queryInfixInfix = seqan2::infix(swiftPattern, queryInfix);
 
+    std::cerr << "seqan2::length(host(swiftPattern))\t" << seqan2::length(host(swiftPattern)) << '\n';
+    std::cerr << "seqan2::length(host(queryInfix))\t" << seqan2::length(host(queryInfix)) << '\n';
+     
+    std::cerr << "seqan2::beginPosition(queryInfixInfix)\t" << seqan2::beginPosition(queryInfixInfix) << '\n';
+    std::cerr << "seqan2::endPosition(queryInfixInfix)\t" << seqan2::endPosition(queryInfixInfix) << '\n';
+    std::cerr << "seqan2::length(underlyingQuery)\t" << seqan2::length(underlyingQuery) << '\n';
     return {underlyingQuery, seqan2::beginPosition(queryInfixInfix), seqan2::endPosition(queryInfixInfix)};
 }
 
