@@ -229,8 +229,15 @@ allOrBestLocal(Segment<Segment<TSequence const, InfixSegment>, InfixSegment> con
             lowerDiag = -(int64_t)delta;
         } else
             upperDiag = lowerDiag + delta;
-    } else if (endPosition(infV) == endPosition(host(infV)))
+    } else if (endPosition(infV) == endPosition(host(infV))) {
         lowerDiag = -(int64_t)delta;
+    } else if (lowerDiag > upperDiag) {
+        std::cerr << "Warning: database infix length > query infix length. " 
+                  << endPosition(infH) - beginPosition(infH) 
+                  << ">" << endPosition(infV) - beginPosition(infV);
+        return;
+    }
+        
 
     // banded local alignment
     LocalAlignmentEnumerator<Score<TScore>, Banded> enumerator(scoreMatrix, lowerDiag, upperDiag, minScore);
