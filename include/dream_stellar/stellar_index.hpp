@@ -30,6 +30,84 @@
 
 #include <dream_stellar/options/index_options.hpp>
 
+namespace seqan2
+{
+
+using StellarSwiftLocal = Tag<struct StellarSwiftLocal_>;
+template<>
+struct Swift<StellarSwiftLocal>: public Swift<SwiftLocal>{};
+
+/////////////////////////////////////////////////////////////
+// Creates a new hit and appends it to the finders hit list
+template <
+typename THaystack,
+typename TIndex,
+typename TBucket,
+typename TBucketParams,
+typename TSize>
+inline void _createHit(
+    Finder<THaystack, Swift<StellarSwiftLocal> > & finder,
+    Pattern<TIndex, Swift<StellarSwiftLocal> > & pattern,
+    TBucket & bkt,
+    TBucketParams & bucketParams,
+    int64_t diag,
+    TSize ndlSeqNo)
+{
+    typedef typename FindResult<Finder<THaystack, Swift<StellarSwiftLocal> >, Pattern<TIndex, Swift<StellarSwiftLocal> > >::Type THit;
+    int64_t lastInc = (int64_t)bkt.lastIncrement - pattern.finderPosOffset;
+    int64_t firstInc = (int64_t)bkt.firstIncrement - pattern.finderPosOffset;
+    
+    if(diag > lastInc)
+    {
+        // bucket is reused since last increment
+        TSize reusePos = (bucketParams.reuseMask + 1) << bucketParams.logDelta;
+        diag -= (int64_t)ceil((diag-lastInc)/(double)reusePos) * reusePos;
+    }
+    
+    // determine width, height, and begin position in needle
+    TSize width = lastInc - firstInc + length(pattern.shape);   // length of hit in haystack
+    TSize height = width + bucketParams.delta + bucketParams.overlap;   // length of hit in needle
+    
+    int64_t ndlBegin = lastInc + length(pattern.shape) - diag - height;
+    auto const & queryInfix = seqan2::getSequenceByNo(ndlSeqNo, seqan2::indexText(seqan2::needle(pattern)));
+    
+    int64_t queryInfixBegin = static_cast<int64_t>(seqan2::beginPosition(queryInfix));    
+    // extend seed past the beginning of the infix segment
+    if (ndlBegin + queryInfixBegin < 0LL)
+    {
+        ndlBegin = std::clamp<int64_t>(ndlBegin, -queryInfixBegin, 0);
+        height = lastInc + length(pattern.shape) - diag - ndlBegin;
+        assert(lastInc + length(pattern.shape) >= diag + ndlBegin); 
+        // can not extend seed past the beginning of the host sequence
+        if (height < width)
+            return;
+    }
+    
+    // extend seed past the end of the infix segment
+    int64_t swiftHitEnd = queryInfixBegin + ndlBegin + height; 
+    if (swiftHitEnd > 0 && (uint64_t) swiftHitEnd > seqan2::length(seqan2::host(queryInfix)))
+    {
+        height = std::clamp<TSize>(height, 0, std::max<int64_t>(0, (seqan2::length(seqan2::host(queryInfix)) - queryInfixBegin - ndlBegin)));
+        // can not extend seed past the end of the host sequence
+        if (height < width)
+            return;
+    }
+    
+    assert(height >= width); // the band width of alignment in verifySwiftHit is height - width
+    // create the hit
+    THit hit = {                //                              *
+        firstInc,               // bucket begin in haystack     * *
+        ndlSeqNo,               // needle seq. number           *   *
+        ndlBegin,               // bucket begin in needle       *     *
+        width,                  // bucket width (non-diagonal)    *   *
+        height                  // bucket height                    * *
+    };                          //                                    *
+    
+    // append the hit to the finders hit list
+    appendValue(finder.hits, hit);
+    }
+}
+
 namespace dream_stellar
 {
 using namespace seqan2;
@@ -41,10 +119,10 @@ template <typename TAlphabet>
 using StellarQGramIndex = Index<StellarQGramStringSet<TAlphabet> const, IndexQGram<SimpleShape, OpenAddressing> >;
 
 template <typename TAlphabet>
-using StellarSwiftPattern = Pattern<StellarQGramIndex<TAlphabet>, Swift<SwiftLocal> >;
+using StellarSwiftPattern = Pattern<StellarQGramIndex<TAlphabet>, Swift<StellarSwiftLocal> >;
 
 template <typename TAlphabet>
-using StellarSwiftFinder = Finder<Segment<String<TAlphabet> const, InfixSegment> const, Swift<SwiftLocal> >;
+using StellarSwiftFinder = Finder<Segment<String<TAlphabet> const, InfixSegment> const, Swift<StellarSwiftLocal> >;
 
 template <typename TAlphabet>
 struct StellarIndex

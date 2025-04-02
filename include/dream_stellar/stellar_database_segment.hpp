@@ -39,6 +39,7 @@ struct StellarDatabaseSegment : public StellarSequenceSegment<TAlphabet>
         TNestedFinderSegment finderSegment(finderInfixSeq,
             seqan2::beginPosition(finderInfix) - seqan2::beginPosition(_database),
             seqan2::endPosition(finderInfix) - seqan2::beginPosition(_database));
+        assert(seqan2::length(finderInfix) == seqan2::length(finderSegment));
         return finderSegment;
     }
 };

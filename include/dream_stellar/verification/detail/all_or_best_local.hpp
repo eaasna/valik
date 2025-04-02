@@ -194,7 +194,7 @@ allOrBestLocal(Segment<Segment<TSequence const, InfixSegment>, InfixSegment> con
     typedef Segment<TInfix, InfixSegment> TSegment;
     typedef typename StellarMatch<TSequence const, seqan2::CharString>::TAlign TAlign;
 
-    TSize maxLength = 1000000000;
+    TSize maxLength = 1e9;
     if ((TSize)length(infH) > maxLength) {
         std::cerr << "Warning: SWIFT hit <" << beginPosition(infH) << "," << endPosition(infH);
         std::cerr << "> , <" << beginPosition(infV) << "," << endPosition(infV);
@@ -229,8 +229,15 @@ allOrBestLocal(Segment<Segment<TSequence const, InfixSegment>, InfixSegment> con
             lowerDiag = -(int64_t)delta;
         } else
             upperDiag = lowerDiag + delta;
-    } else if (endPosition(infV) == endPosition(host(infV)))
+    } else if (endPosition(infV) == endPosition(host(infV))) {
         lowerDiag = -(int64_t)delta;
+    } else if (lowerDiag > upperDiag) {
+        std::cerr << "Warning: database infix length > query infix length. " 
+                  << endPosition(infH) - beginPosition(infH) 
+                  << ">" << endPosition(infV) - beginPosition(infV);
+        return;
+    }
+        
 
     // banded local alignment
     LocalAlignmentEnumerator<Score<TScore>, Banded> enumerator(scoreMatrix, lowerDiag, upperDiag, minScore);
