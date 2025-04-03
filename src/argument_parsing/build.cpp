@@ -51,17 +51,9 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
                       .description = "Split a clustered metagenome database. Reference input is a list of cluster paths"});
 
     parser.add_option(arguments.out_path,
-                      sharg::config{.short_id = '\0',
+                      sharg::config{.short_id = 'o',
                       .long_id = "output",
-                      .description = "Provide an output filepath.",
-                      .required = true,
-                      .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create, {}}});
-    parser.add_option(arguments.ref_meta_path,
-                    sharg::config{.short_id = '\0',
-                    .long_id = "ref-meta",
-                    .description = "Path to reference metadata output.",
-                    .required = true,
-                    .validator = sharg::input_file_validator{}});
+                      .description = "Provide an output filepath."});
     parser.add_option(arguments.threads,
                     sharg::config{.short_id = '\0',
                     .long_id = "threads",
@@ -90,12 +82,6 @@ void init_build_parser(sharg::parser & parser, build_arguments & arguments)
                       .description = "Choose the window size.",
                       .advanced = true,
                       .validator = positive_integer_validator{}});
-    parser.add_option(arguments.kmer_size,
-                      sharg::config{.short_id = 'k',
-                      .long_id = "kmer",
-                      .description = "Choose the kmer size.",
-                      .advanced = true,
-                      .validator = sharg::arithmetic_range_validator{1, 32}});
     parser.add_option(arguments.hash,
                       sharg::config{.short_id = '\0',
                       .long_id = "hash",
@@ -186,11 +172,15 @@ void run_build(sharg::parser & parser)
         arguments.bin_path.emplace_back(bin_string);
     }
 
-    if (!parser.is_option_set("out"))
+    if (!parser.is_option_set("output"))
     {
-        arguments.meta_out = arguments.db_file;
-        arguments.meta_out.replace_extension("bin");
+        arguments.out_path = arguments.db_file;
+        arguments.out_path.replace_extension("index");
     }
+    sharg::output_file_validator{sharg::output_file_open_options::open_or_create}(arguments.out_path);
+    
+    arguments.ref_meta_path = arguments.out_path;
+    arguments.ref_meta_path.replace_extension("bin");
 
     if (parser.is_option_set("seg-count") && !arguments.only_split)
     {
@@ -267,7 +257,6 @@ void run_build(sharg::parser & parser)
         
     try
     {
-        sharg::output_file_validator{sharg::output_file_open_options::open_or_create}(arguments.out_path);
         arguments.out_dir = arguments.out_path.parent_path();
     }
     catch (sharg::parser_error const & ext)

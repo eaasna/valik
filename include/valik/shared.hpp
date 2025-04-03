@@ -60,7 +60,6 @@ struct split_arguments
 {
     std::vector<std::string> bin_path{};
     std::filesystem::path db_file{};
-    std::filesystem::path meta_out{"metadata.bin"};
 
     size_t pattern_size{150};
     uint32_t seg_count{64};
@@ -71,6 +70,7 @@ struct split_arguments
     std::string shape_str{};
     seqan3::shape shape{};
     uint8_t shape_weight{};
+    uint8_t window_size{};
     
     bool metagenome{false};
     std::filesystem::path ref_meta_path{};

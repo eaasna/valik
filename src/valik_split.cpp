@@ -22,7 +22,7 @@ void valik_split(build_arguments & arguments)
     }
 
     metadata meta(arguments);
-    meta.save(arguments.meta_out);
+    meta.save(arguments.ref_meta_path);
 
     if (arguments.verbose)
     {
@@ -63,7 +63,7 @@ void valik_split(build_arguments & arguments)
         if (arguments.verbose)
             search_profile.print();
 
-        std::filesystem::path search_profile_file{arguments.meta_out};
+        std::filesystem::path search_profile_file{arguments.ref_meta_path};
         search_profile_file.replace_extension("arg");
         search_profile.save(search_profile_file);
     }

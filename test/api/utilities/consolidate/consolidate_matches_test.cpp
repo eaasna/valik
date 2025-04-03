@@ -99,11 +99,11 @@ void check_consolidation(std::set<std::string> const &  query_ids,
         auto initial_matches = initial | std::views::filter(query_match);
         auto consolidated_matches = actual | std::views::filter(query_match);
 
-        if (std::abs(std::distance(initial_matches.begin(), initial_matches.end())) >= arguments.disableThresh)
+        if ((size_t) std::abs(std::distance(initial_matches.begin(), initial_matches.end())) >= arguments.disableThresh)
         {
             EXPECT_EQ(std::distance(consolidated_matches.begin(), consolidated_matches.end()), 0);
         }
-        else if (std::abs(std::distance(initial_matches.begin(), initial_matches.end())) > arguments.numMatches)
+        else if ((size_t) std::abs(std::distance(initial_matches.begin(), initial_matches.end())) > arguments.numMatches)
         {
             EXPECT_EQ(std::distance(consolidated_matches.begin(), consolidated_matches.end()), arguments.numMatches);
         }
