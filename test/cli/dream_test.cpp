@@ -20,29 +20,23 @@ TEST_P(dream_short_search, short_shared_mem)
     setup_tmp_dir();
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = "ref_meta.bin";
-    std::filesystem::path index_path = "index.ibf";
-    
-    cli_test_result const split_ref = execute_app("valik", "split",
-                                                           data("ref.fasta"),
-                                                           "--fpr 0.001",
-                                                           "--out", ref_meta_path,
-                                                           "--pattern ", std::to_string(pattern_size), 
-                                                           "--error-rate ", std::to_string(max_error_rate));
-    EXPECT_EQ(split_ref.exit_code, 0);
-    valik::metadata reference(ref_meta_path);
+    std::filesystem::path ref_meta_path = "ref.bin";
+    std::filesystem::path index_path = "ref.ibf";
 
     cli_test_result const build = execute_app("valik", "build",
-                                                       "--ref-meta", ref_meta_path,
-                                                       "--output ", index_path);
+                                                       data("ref.fasta"),
+                                                       "--output ", index_path, 
+                                                       "--fpr 0.001", 
+                                                       "--pattern ", std::to_string(pattern_size),
+                                                       "--error-rate ", std::to_string(max_error_rate));
     EXPECT_EQ(build.exit_code, 0);
+    valik::metadata reference(ref_meta_path);
 
     cli_test_result const result = execute_app("valik", "search",
                                                         "--output search.gff",
                                                         "--error-rate ", std::to_string(error_rate),
                                                         "--index ", index_path,
                                                         "--query ", data("query.fasta"),
-                                                        "--ref-meta", ref_meta_path, 
                                                         "--repeatPeriod 1",
                                                         "--repeatLength 10", 
                                                         "--numMatches 2");
@@ -72,19 +66,12 @@ TEST_F(dream_short_search, no_matches)
 
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = "ref_meta.bin";
-    std::filesystem::path index_path = "index.ibf";
+    std::filesystem::path ref_meta_path = "ref.bin";
+    std::filesystem::path index_path = "ref.ibf";
     
-    cli_test_result const split_ref = execute_app("valik", "split",
-                                                           data("ref.fasta"),
-                                                           "--out", ref_meta_path,
-                                                           "--pattern ", std::to_string(pattern_size));
-    EXPECT_EQ(split_ref.exit_code, 0);
-    EXPECT_EQ(split_ref.err, std::string{});
-    EXPECT_EQ(split_ref.out, std::string{});
-
     cli_test_result const build = execute_app("valik", "build",
-                                                       "--ref-meta", ref_meta_path,
+                                                       data("ref.fasta"),
+                                                       "--pattern ", std::to_string(pattern_size),
                                                        "--output ", index_path);
     EXPECT_EQ(build.exit_code, 0);
     EXPECT_EQ(build.err, std::string{});
@@ -93,8 +80,7 @@ TEST_F(dream_short_search, no_matches)
                                                         "--output search.gff",
                                                         "--error-rate 0",
                                                         "--index ", index_path,
-                                                        "--query ", data("dummy_reads.fastq"),
-                                                        "--ref-meta", ref_meta_path);
+                                                        "--query ", data("dummy_reads.fastq"));
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{"Launching stellar search on a shared memory machine...\nLoaded 4 database sequences.\n"});
@@ -119,23 +105,18 @@ TEST_P(dream_split_search, split_shared_mem)
     setup_tmp_dir();
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = "ref_meta.bin";
-    std::filesystem::path index_path = "index.ibf";
-
-    cli_test_result const split_ref = execute_app("valik", "split",
-                                                           data("ref.fasta"),
-                                                           "--fpr 0.001",
-                                                           "--out", ref_meta_path,
-                                                           "--pattern ", std::to_string(pattern_size), 
-                                                           "--error-rate ", std::to_string(max_error_rate));
-    EXPECT_EQ(split_ref.exit_code, 0);
-    EXPECT_EQ(split_ref.err, std::string{});
-    valik::metadata reference(ref_meta_path);
+    std::filesystem::path ref_meta_path = "ref.bin";
+    std::filesystem::path index_path = "ref.ibf";
 
     cli_test_result const build = execute_app("valik", "build",
-                                                       "--ref-meta", ref_meta_path,
+                                                       data("ref.fasta"),
+                                                       "--fpr 0.001",
+                                                       "--pattern ", std::to_string(pattern_size), 
+                                                       "--error-rate ", std::to_string(max_error_rate),
                                                        "--output ", index_path);
+
     EXPECT_EQ(build.exit_code, 0);
+    valik::metadata reference(ref_meta_path);
 
     cli_test_result const search = execute_app("valik", "search",
                                                         "--output search.gff",
@@ -143,9 +124,8 @@ TEST_P(dream_split_search, split_shared_mem)
                                                         "--error-rate ", std::to_string(error_rate),
                                                         "--index ", index_path,
                                                         "--query ", data("query.fasta"),
-                                                        "--ref-meta", ref_meta_path,
                                                         "--repeatPeriod 1",
-                                                        "--repeatLength 10", 
+                                                        "--repeatLength 10",
                                                         "--numMatches 2");
 
     EXPECT_EQ(search.exit_code, 0);
@@ -178,24 +158,19 @@ TEST_P(dream_split_search, split_shaped_kmer)
     setup_tmp_dir();
     setenv("VALIK_MERGE", "cat", true);
 
-    std::filesystem::path ref_meta_path = "ref_meta.bin";
-    std::filesystem::path index_path = "index.ibf";
-
-    cli_test_result const split_ref = execute_app("valik", "split",
-                                                           data("ref.fasta"),
-                                                           "--fpr 0.001",
-                                                           "--shape 1111110110110111111",
-                                                           "--out", ref_meta_path,
-                                                           "--pattern ", std::to_string(pattern_size), 
-                                                           "--error-rate ", std::to_string(max_error_rate));
-    EXPECT_EQ(split_ref.exit_code, 0);
-    EXPECT_EQ(split_ref.err, std::string{});
-    valik::metadata reference(ref_meta_path);
+    std::filesystem::path ref_meta_path = "ref.bin";
+    std::filesystem::path index_path = "ref.ibf";
 
     cli_test_result const build = execute_app("valik", "build",
-                                                       "--ref-meta", ref_meta_path,
-                                                       "--output ", index_path);
+                                                       data("ref.fasta"),
+                                                       "--output ", index_path,
+                                                       "--fpr 0.001",
+                                                       "--shape 1111110110110111111",
+                                                       "--pattern ", std::to_string(pattern_size), 
+                                                       "--error-rate ", std::to_string(max_error_rate));
+
     EXPECT_EQ(build.exit_code, 0);
+    valik::metadata reference(ref_meta_path);
 
     cli_test_result const search = execute_app("valik", "search",
                                                         "--output search.gff",
@@ -203,7 +178,6 @@ TEST_P(dream_split_search, split_shaped_kmer)
                                                         "--error-rate ", std::to_string(error_rate),
                                                         "--index ", index_path,
                                                         "--query ", data("query.fasta"),
-                                                        "--ref-meta", ref_meta_path,
                                                         "--repeatPeriod 1",
                                                         "--repeatLength 10", 
                                                         "--numMatches 2");

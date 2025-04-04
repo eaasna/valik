@@ -10,7 +10,7 @@ namespace valik
 
 template <typename algorithm_t>
 void call_parallel_on_bins(algorithm_t && worker,
-                           std::vector<std::vector<std::string>> const & bin_paths,
+                           std::vector<std::string> const & bin_paths,
                            uint8_t const threads)
 {
     size_t const chunk_size = std::clamp<size_t>(std::bit_ceil(bin_paths.size() / threads),

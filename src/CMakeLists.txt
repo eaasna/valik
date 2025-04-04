@@ -58,9 +58,6 @@ target_link_libraries ("${PROJECT_NAME}_merge_processes_lib" PUBLIC "raptor_thre
 add_library ("${PROJECT_NAME}_argument_parsing_shared_lib" STATIC argument_parsing/shared.cpp)
 target_link_libraries ("${PROJECT_NAME}_argument_parsing_shared_lib" PUBLIC "${PROJECT_NAME}_interface")
 
-add_library ("${PROJECT_NAME}_argument_parsing_split_lib" STATIC argument_parsing/split.cpp)
-target_link_libraries ("${PROJECT_NAME}_argument_parsing_split_lib" PUBLIC "${PROJECT_NAME}_argument_parsing_shared_lib")
-
 add_library ("${PROJECT_NAME}_argument_parsing_build_lib" STATIC argument_parsing/build.cpp)
 target_link_libraries ("${PROJECT_NAME}_argument_parsing_build_lib" PUBLIC "${PROJECT_NAME}_argument_parsing_shared_lib")
 
@@ -72,7 +69,6 @@ target_link_libraries ("${PROJECT_NAME}_argument_parsing_top_level_lib" PUBLIC "
 
 # Valik library
 add_library ("${PROJECT_NAME}_lib" INTERFACE)
-target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_argument_parsing_split_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_argument_parsing_build_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_argument_parsing_search_lib")
 target_link_libraries ("${PROJECT_NAME}_lib" INTERFACE "${PROJECT_NAME}_argument_parsing_shared_lib")

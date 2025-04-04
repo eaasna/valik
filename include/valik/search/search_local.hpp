@@ -81,7 +81,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     {
         arguments.bin_path.clear(); // in case inserted from index
         for (auto & f : ref_meta.files)
-            arguments.bin_path.push_back(std::vector<std::string>{f.path});
+            arguments.bin_path.push_back(f.path);
 
         auto prefilter_bin_count = ref_meta.seg_count;
         split_arguments stellar_dist_arguments;
@@ -118,12 +118,13 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
                                                          (double) query_meta.value().seg_count)) << "bp\n";
         }
 
+        double information_content{0.35};
         if (!arguments.manual_parameters)
         {
             search_pattern pattern(arguments.errors, arguments.pattern_size);
             param_space space;
             param_set params(arguments.shape, arguments.threshold);
-            filtering_request request(pattern, ref_meta, query_meta.value());
+            filtering_request request(pattern, ref_meta, query_meta.value(), information_content);
             if ((request.fpr(params) > 0.2) && (arguments.search_type != search_kind::STELLAR))
                 std::cerr << "WARNING: Prefiltering will be inefficient for a high error rate.\n";
 
@@ -183,7 +184,7 @@ bool search_local(search_arguments & arguments, search_time_statistics & time_st
     bool const databasesSuccess = input_databases_time.measure_time([&]()
     {
         std::cout << "Launching stellar search on a shared memory machine...\n";
-        return dream_stellar::_importAllSequences(arguments.bin_path[0][0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
+        return dream_stellar::_importAllSequences(arguments.bin_path[0].c_str(), "database", databases, databaseIDs, refLen, std::cout, std::cerr);
     });
     if (!databasesSuccess)
         return false;
