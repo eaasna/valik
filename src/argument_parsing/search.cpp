@@ -60,11 +60,6 @@ void init_search_parser(sharg::parser & parser, search_arguments & arguments)
                     .long_id = "very-verbose",
                     .description = "Print verbose output.",
                     .advanced = true});
-    parser.add_option(arguments.ref_meta_path,
-                    sharg::config{.short_id = '\0',
-                    .long_id = "ref-meta",
-                    .description = "Path to reference metadata file created by split.",
-                    .validator = sharg::input_file_validator{}});
     parser.add_flag(arguments.distribute,
                     sharg::config{.short_id = '\0',
                     .long_id = "distribute",
@@ -214,11 +209,8 @@ void run_search(sharg::parser & parser)
     if (arguments.very_verbose)
         arguments.verbose = true;
 
-    if (arguments.manual_parameters && !parser.is_option_set("ref-meta") && arguments.split_query)
-    {
-        if (!parser.is_option_set("pattern") || !parser.is_option_set("seg-count"))
-            throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
-    }
+    arguments.ref_meta_path = arguments.index_file;
+    arguments.ref_meta_path.replace_extension("bin");
 
     // ==========================================
     // Process --seg-count.
@@ -226,6 +218,12 @@ void run_search(sharg::parser & parser)
     if (parser.is_option_set("seg-count"))
     {
         arguments.split_query = true;
+    }
+
+    if (arguments.manual_parameters && arguments.split_query)
+    {
+        if (!parser.is_option_set("pattern") || !parser.is_option_set("seg-count"))
+            throw std::runtime_error("Provide --seg-count and --pattern manually.");
     }
 
     // ==========================================
@@ -300,33 +298,20 @@ void run_search(sharg::parser & parser)
         arguments.threshold_percentage = arguments.threshold / (double) (arguments.pattern_size - arguments.shape.size() + 1);
     }
 
-    // ==========================================
-    // Process reference metadata path.
-    // ==========================================
-    if (parser.is_option_set("ref-meta"))
+    if (arguments.bin_path.size() == 1)
     {
         // Create temporary file path for merging parallel Stellar runs.
         arguments.all_matches = arguments.out_file;
         arguments.all_matches += ".preliminary";
     }
-    else
-    {
-        if (arguments.split_query && !arguments.manual_parameters)
-        {
-            throw std::runtime_error("Provide --ref-meta to deduce parameter values or provide --seg-count and --pattern manually.");
-        }
-    }
 
-    if (!arguments.manual_parameters)
+    std::filesystem::path search_profile_file{arguments.ref_meta_path};
+    search_profile_file.replace_extension("arg");
+    if (std::filesystem::exists(search_profile_file))
     {
         // ==========================================
         // Extract data from reference metadata.
         // ==========================================
-        if (!parser.is_option_set("ref-meta"))
-            throw sharg::validation_error("Provide --ref-meta to deduce suitable search parameters or set --without-parameter-tuning and --pattern size.");
-
-        std::filesystem::path search_profile_file{arguments.ref_meta_path};
-        search_profile_file.replace_extension("arg");
         sharg::input_file_validator argument_input_validator{{"arg"}};
         argument_input_validator(search_profile_file);
         search_kmer_profile search_profile{search_profile_file};

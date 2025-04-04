@@ -189,9 +189,10 @@ void run_build(sharg::parser & parser)
     }
 
     // ==========================================
-    // Dispatch
+    // Dispatch split
     // ==========================================
-    valik_split(arguments);
+    auto meta = valik_split(arguments);
+    arguments.bins = meta.seg_count;
 
     if (!arguments.manual_parameters)
     {
@@ -227,34 +228,6 @@ void run_build(sharg::parser & parser)
         throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
     }
 
-    // ==========================================
-    // Process bin_path:
-    // if building from clustered sequences each line in input corresponds to a bin
-    // if building from overlapping segments all sequences in one reference file
-    // ==========================================
-    metadata meta(arguments.ref_meta_path);
-    arguments.bins = meta.seg_count;
-    if (meta.files.size() == 1)
-        arguments.bin_path.push_back(meta.files[0].path);
-    else
-    {
-        for (auto & seg : meta.segments)
-        {
-            std::unordered_set<size_t> file_ids{};
-            for (size_t seq_id : seg.seq_vec)
-            {
-                file_ids.emplace(meta.sequences[seq_id].file_id);
-            }
-            
-            assert(file_ids.size() == 1);
-            arguments.bin_path.push_back(meta.files[*file_ids.begin()].path);
-        }
-    }
-
-    // ==========================================
-    // Process minimiser parameters for IBF size calculation.
-    // ==========================================
-        
     try
     {
         arguments.out_dir = arguments.out_path.parent_path();
@@ -265,6 +238,9 @@ void run_build(sharg::parser & parser)
         std::exit(-1);
     }
 
+    // ==========================================
+    // Process minimiser parameters for IBF size calculation.
+    // ==========================================
     if (!parser.is_option_set("window"))
     {
         if (arguments.fast)

@@ -8,7 +8,7 @@ namespace valik::app
  *
  * @param arguments Command line arguments.
  */
-void valik_split(build_arguments & arguments)
+metadata valik_split(build_arguments & arguments)
 {
     if (arguments.only_split)
     {
@@ -72,6 +72,8 @@ void valik_split(build_arguments & arguments)
     {
         write_reference_segments(meta, arguments.db_file);
     }
+
+    return meta;
 }
 
 } // namespace valik::app
