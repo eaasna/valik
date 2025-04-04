@@ -124,16 +124,6 @@ struct valik_base : public cli_test
         }
     };
 
-    static std::filesystem::path segment_metadata_path(size_t const overlap, size_t const bins) noexcept
-    {
-        std::string name{};
-        name += std::to_string(overlap);
-        name += "overlap";
-        name += std::to_string(bins);
-        name += "bins.bin";
-        return cli_test::data(name);
-    }
-
     static std::filesystem::path ibf_path(size_t const number_of_bins, size_t const window_size) noexcept
     {
         std::string name{};
